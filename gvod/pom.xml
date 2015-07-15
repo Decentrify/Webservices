@@ -8,18 +8,16 @@
         <version>2.0-SNAPSHOT</version>
     </parent>
     <groupId>se.kth.ws</groupId>
-    <artifactId>sweep</artifactId>
+    <artifactId>gvod</artifactId>
     <version>2.0-SNAPSHOT</version>
-    <name>Sweep WS</name>
+    <name>GVoD WS</name>
     <url>http://maven.apache.org</url>
-
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <dropwizard.version>0.6.2</dropwizard.version>
-        <sweep.launcher.version>1.0-SNAPSHOT</sweep.launcher.version>
         <jetty.version>8.1.10.v20130312</jetty.version>
     </properties>
-
+  
     <dependencies>
         <dependency>
             <groupId>com.yammer.dropwizard</groupId>
@@ -33,9 +31,21 @@
         </dependency>
         
         <dependency>
-            <groupId>se.kth.ms</groupId>
-            <artifactId>launch</artifactId>
-            <version>${sweep.launcher.version}</version>
+            <groupId>se.sics.gvod</groupId>
+            <artifactId>manager</artifactId>
+            <version>0.0.2-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        
+        <dependency>
+            <groupId>se.sics.gvod</groupId>
+            <artifactId>system</artifactId>
+            <version>0.0.2-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>

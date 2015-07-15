@@ -23,7 +23,6 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigException;
 import com.typesafe.config.ConfigFactory;
 import java.io.IOException;
-import java.util.logging.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.sics.gvod.config.ElectionConfiguration;
@@ -55,6 +54,7 @@ import se.sics.p2ptoolbox.election.core.ElectionConfig;
 import se.sics.p2ptoolbox.election.network.ElectionSerializerSetup;
 import se.sics.p2ptoolbox.gradient.GradientConfig;
 import se.sics.p2ptoolbox.gradient.GradientSerializerSetup;
+import se.sics.p2ptoolbox.tgradient.TreeGradientConfig;
 import se.sics.p2ptoolbox.util.config.SystemConfig;
 import se.sics.p2ptoolbox.util.serializer.BasicSerializerSetup;
 
@@ -101,6 +101,7 @@ public class SweepWSLauncher extends ComponentDefinition {
         CroupierConfig croupierConfig = new CroupierConfig(config);
         ElectionConfig electionConfig = new ElectionConfig(config);
         ChunkManagerConfig chunkManagerConfig = new ChunkManagerConfig(config);
+        TreeGradientConfig treeGradientConfig = new TreeGradientConfig(config);
 
         timer = create(JavaTimer.class, Init.NONE);
         network = create(NettyNetwork.class, new NettyInit(systemConfig.self));
@@ -112,7 +113,7 @@ public class SweepWSLauncher extends ComponentDefinition {
         SettableFuture<SweepSyncI> sweepSyncI = SettableFuture.create();
         searchPeer = create(SearchPeer.class, new SearchPeerInit(applicationSelf, systemConfig, croupierConfig,
                 SearchConfiguration.build(), GradientConfiguration.build(),
-                ElectionConfiguration.build(), chunkManagerConfig, gradientConfig, electionConfig));
+                ElectionConfiguration.build(), chunkManagerConfig, gradientConfig, electionConfig, treeGradientConfig));
 
         connect(timer.getPositive(Timer.class), searchPeer.getNegative(Timer.class));
         connect(network.getPositive(Network.class), searchPeer.getNegative(Network.class));
@@ -149,7 +150,7 @@ public class SweepWSLauncher extends ComponentDefinition {
             LOG.info("stopping...");
         }
     };
-    
+
     public static void main(String[] args) throws IOException {
         if (Kompics.isOn()) {
             Kompics.shutdown();

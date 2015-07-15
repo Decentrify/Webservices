@@ -21,6 +21,7 @@ package se.kth.ws.sweep;
 import com.google.common.util.concurrent.SettableFuture;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.PUT;
@@ -49,9 +50,9 @@ public class SweepRESTMsgs {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public static class AddIndexResource {
-        
+
         private SweepSyncI sweep;
-       
+
         public AddIndexResource(SweepSyncI sweepSyncI) {
             this.sweep = sweepSyncI;
         }
@@ -76,12 +77,13 @@ public class SweepRESTMsgs {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public static class SearchIndexResource {
+
         private SweepSyncI sweep;
-       
+
         public SearchIndexResource(SweepSyncI sweepSyncI) {
             this.sweep = sweepSyncI;
         }
-        
+
         @PUT
         public Response search(SearchIndexJSON.Request request) {
             LOG.info("received SearchIndex request for:{}", request.getSearchPattern().getFileNamePattern());
@@ -95,7 +97,7 @@ public class SweepRESTMsgs {
             if (!processResult.ok()) {
                 return Response.status(ResponseStatusWSMapper.map(processResult.status)).entity(request.getResponse(null, processResult.getDetails())).build();
             }
-            
+
             Result<ArrayList<EntryPlusJSON>> parseToJSONResult = ProcessSearchIndex.parseToJSON(processResult.value.get());
             if (!processResult.ok()) {
                 return Response.status(ResponseStatusWSMapper.map(parseToJSONResult.status)).entity(request.getResponse(null, parseToJSONResult.getDetails())).build();
@@ -123,6 +125,7 @@ public class SweepRESTMsgs {
 
         public static Result<IndexEntry> parseFromJSON(AddEntryJSON.Request request) {
             IndexEntry entry = new IndexEntry(
+                    UUID.randomUUID().toString(),
                     request.getEntry().getUrl(),
                     request.getEntry().getFileName(),
                     request.getEntry().getFileSize(),
@@ -181,7 +184,7 @@ public class SweepRESTMsgs {
             for (IndexEntry entry : resultList) {
                 returnList.add(new EntryPlusJSON(entry));
             }
-            
+
             return Result.ok(returnList);
         }
     }
