@@ -18,6 +18,7 @@
  */
 package se.kth.ws.sweep;
 
+import se.kth.ws.sweep.core.SweepSyncI;
 import com.google.common.util.concurrent.SettableFuture;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigException;
@@ -25,6 +26,7 @@ import com.typesafe.config.ConfigFactory;
 import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import se.kth.ws.sweep.core.SweepSyncComponent;
 import se.sics.gvod.config.ElectionConfiguration;
 import se.sics.gvod.config.GradientConfiguration;
 import se.sics.gvod.config.SearchConfiguration;
@@ -43,6 +45,7 @@ import se.sics.kompics.timer.java.JavaTimer;
 import se.sics.ms.common.ApplicationSelf;
 import se.sics.ms.configuration.MsConfig;
 import se.sics.ms.net.SerializerSetup;
+import se.sics.ms.ports.UiPort;
 import se.sics.ms.search.SearchPeer;
 import se.sics.ms.search.SearchPeerInit;
 import se.sics.p2ptoolbox.aggregator.network.AggregatorSerializerSetup;
@@ -67,7 +70,8 @@ public class SweepWSLauncher extends ComponentDefinition {
 
     private Component network;
     private Component timer;
-    private Component searchPeer;
+    private Component sweep;
+    private Component sweepSync;
     private SweepWS sweepWS;
     private Config config;
 
@@ -97,30 +101,36 @@ public class SweepWSLauncher extends ComponentDefinition {
         config = ConfigFactory.load();
 
         SystemConfig systemConfig = new SystemConfig(config);
+
+        timer = create(JavaTimer.class, Init.NONE);
+        network = create(NettyNetwork.class, new NettyInit(systemConfig.self));
+        createNConnectSweep(systemConfig);
+        createNConnectSweepSync();
+        sweepWS = new SweepWS((SweepSyncI)sweepSync.getComponent());
+    }
+
+    private void createNConnectSweep(SystemConfig systemConfig) {
+
         GradientConfig gradientConfig = new GradientConfig(config);
         CroupierConfig croupierConfig = new CroupierConfig(config);
         ElectionConfig electionConfig = new ElectionConfig(config);
         ChunkManagerConfig chunkManagerConfig = new ChunkManagerConfig(config);
         TreeGradientConfig treeGradientConfig = new TreeGradientConfig(config);
 
-        timer = create(JavaTimer.class, Init.NONE);
-        network = create(NettyNetwork.class, new NettyInit(systemConfig.self));
-
         //TODO Abhi - why aren't you building this applicationSelf in SearchPeer and instead risk me handing this reference to someone else - shared object problem
         ApplicationSelf applicationSelf = new ApplicationSelf(systemConfig.self);
-        //TODO send to searchPeer to populate it so the RestAPI can start
-        //TODO - make sure to set the settable future in the constructor of SearchPeer or else you will might deadlock
-        SettableFuture<SweepSyncI> sweepSyncI = SettableFuture.create();
-        searchPeer = create(SearchPeer.class, new SearchPeerInit(applicationSelf, systemConfig, croupierConfig,
+        sweep = create(SearchPeer.class, new SearchPeerInit(applicationSelf, systemConfig, croupierConfig,
                 SearchConfiguration.build(), GradientConfiguration.build(),
                 ElectionConfiguration.build(), chunkManagerConfig, gradientConfig, electionConfig, treeGradientConfig));
-
-        connect(timer.getPositive(Timer.class), searchPeer.getNegative(Timer.class));
-        connect(network.getPositive(Network.class), searchPeer.getNegative(Network.class));
-
-        sweepWS = new SweepWS(sweepSyncI);
+        connect(timer.getPositive(Timer.class), sweep.getNegative(Timer.class));
+        connect(network.getPositive(Network.class), sweep.getNegative(Network.class));
     }
-
+    
+    private void createNConnectSweepSync() {
+        sweepSync = create(SweepSyncComponent.class, Init.NONE);
+        connect(sweep.getPositive(UiPort.class), sweepSync.getNegative(UiPort.class));
+    }
+        
     Handler handleStart = new Handler<Start>() {
         @Override
         public void handle(Start event) {

@@ -2,7 +2,7 @@
  * Copyright (C) 2009 Swedish Institute of Computer Science (SICS) Copyright (C)
  * 2009 Royal Institute of Technology (KTH)
  *
- * GVoD is free software; you can redistribute it and/or
+ * Sweep is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
@@ -17,22 +17,39 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package se.sics.ws.sweep.util;
-
-import javax.ws.rs.core.Response;
+package se.sics.ws.sweep.model;
 
 /**
- * @author Alex Ormenisan <aaor@sics.se>
+ * @author Alex Ormenisan <aaor@kth.se>
  */
-public class ResponseStatusWSMapper {
-    public static Response.Status map(se.kth.ws.sweep.core.util.Result.Status from) {
-        switch(from) {
-            case OK : return Response.Status.OK;
-            case BAD_REQUEST : return Response.Status.BAD_REQUEST;
-            case TIMEOUT : return Response.Status.SERVICE_UNAVAILABLE;
-            case INTERNAL_ERROR : return Response.Status.INTERNAL_SERVER_ERROR;
-            case OTHER : return Response.Status.SEE_OTHER;
-            default: return Response.Status.SEE_OTHER;
-        }
+public class PaginationJSON {
+    private int from;
+    private int to;
+    private int total;
+    
+    public PaginationJSON() {}
+
+    public int getFrom() {
+        return from;
+    }
+
+    public void setFrom(int from) {
+        this.from = from;
+    }
+
+    public int getTo() {
+        return to;
+    }
+
+    public void setTo(int to) {
+        this.to = to;
+    }
+
+    public int getTotal() {
+        return total;
+    }
+
+    public void setTotal(int total) {
+        this.total = total;
     }
 }

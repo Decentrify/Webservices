@@ -17,13 +17,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package se.kth.ws.sweep;
+package se.kth.ws.sweep.core;
 
 import com.google.common.util.concurrent.SettableFuture;
 import java.util.ArrayList;
 import se.sics.ms.types.IndexEntry;
 import se.sics.ms.types.SearchPattern;
-import se.sics.ws.sweep.toolbox.Result;
+import se.kth.ws.sweep.core.util.Result;
+import se.sics.ms.types.ApplicationEntry;
 
 /**
  * @author Alex Ormenisan <aaor@sics.se>
@@ -36,6 +37,7 @@ import se.sics.ws.sweep.toolbox.Result;
  * will be used by user of this object
  */
 public interface SweepSyncI {
+    public boolean isReady();
     public void add(IndexEntry entry, SettableFuture<Result> opFuture);
-    public void search(SearchPattern searchPattern, SettableFuture<Result<ArrayList<IndexEntry>>> opFuture);
+    public void search(SearchPattern searchPattern, SettableFuture<Result<ArrayList<ApplicationEntry>>> opFuture);
 }

@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package se.sics.ws.sweep.toolbox;
+package se.kth.ws.sweep.core.util;
 
 import com.google.common.base.Optional;
 
@@ -33,8 +33,9 @@ import com.google.common.base.Optional;
 public class Result<V extends Object> {
 
     public final Status status;
+    
     private final Optional<String> details;
-    public final Optional<V> value;
+    private final Optional<V> value;
 
     public Result(Status status, Optional<String> details, Optional<V> value) {
         this.status = status;
@@ -65,8 +66,12 @@ public class Result<V extends Object> {
         return "";
     }
     
+    public V getValue() {
+        return value.get();
+    }
+    
     public static enum Status {
-        OK, TIMEOUT, INTERNAL_ERROR, BAD_REQUEST, OTHER
+        OK, TIMEOUT, INTERNAL_ERROR, BAD_REQUEST, BUSY, OTHER
     }
     
     public static Result badRequest(String reason) {
@@ -83,5 +88,9 @@ public class Result<V extends Object> {
     
     public static Result internalError(String reason) {
         return new Result(Status.INTERNAL_ERROR, Optional.fromNullable(reason));
+    }
+    
+    public static Result busy(String reason) {
+        return new Result(Status.BUSY, Optional.fromNullable(reason));
     }
 }

@@ -34,8 +34,12 @@ public class AddEntryJSON {
             this.entry = entry;
         }
         
-        public Response getResponse(String errorDescription) {
+        public Response fail(String errorDescription) {
             return new Response(this, errorDescription);
+        }
+        
+        public Response success() {
+            return new Response(this, "");
         }
     }
     
