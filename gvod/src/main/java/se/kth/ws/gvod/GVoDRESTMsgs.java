@@ -60,6 +60,10 @@ public class GVoDRESTMsgs {
         @GET
         public Response getFiles() {
             LOG.info("received get files request");
+            if(!gvod.isReady()) {
+                return Response.status(Response.Status.SERVICE_UNAVAILABLE).entity("gvod not ready").build();
+            }
+            
             SettableFuture<Result<Map<String, FileStatus>>> myFuture = SettableFuture.create();
             gvod.getFiles(myFuture);
             try {
@@ -95,6 +99,10 @@ public class GVoDRESTMsgs {
         @GET
         public Response refreshLibrary() {
             LOG.info("received refresh library request");
+            
+            if(!gvod.isReady()) {
+                return Response.status(Response.Status.SERVICE_UNAVAILABLE).entity("gvod not ready").build();
+            }
 
             SettableFuture<Result<Map<String, FileStatus>>> myFuture = SettableFuture.create();
             gvod.getFiles(myFuture);
@@ -130,6 +138,11 @@ public class GVoDRESTMsgs {
         @PUT
         public Response pendingUpload(VideoInfo videoInfo) {
             LOG.info("received pending upload request for:{}", videoInfo.getName());
+            
+            if(!gvod.isReady()) {
+                VideoOpErrorJSON errorDesc = new VideoOpErrorJSON(videoInfo, "gvod not ready");
+                return Response.status(Response.Status.SERVICE_UNAVAILABLE).entity(errorDesc).build();
+            }
 
             SettableFuture<Result<Boolean>> myFuture = SettableFuture.create();
             gvod.pendingUpload(videoInfo, myFuture);
@@ -146,7 +159,7 @@ public class GVoDRESTMsgs {
                     return Response.status(Response.Status.OK).entity(videoInfo).build();
                 } else {
                     VideoOpErrorJSON errorDesc = new VideoOpErrorJSON(videoInfo, result.getDetails());
-                    return Response.status(ResponseStatusWSMapper.map(result.status)).entity(result.getDetails()).build();
+                    return Response.status(ResponseStatusWSMapper.map(result.status)).entity(errorDesc).build();
                 }
             } catch (InterruptedException ex) {
                 LOG.error("sending pending upload response:{}", Response.Status.INTERNAL_SERVER_ERROR);
@@ -175,6 +188,11 @@ public class GVoDRESTMsgs {
         public Response uploadVideo(VideoInfo videoInfo) {
             LOG.info("received upload requestfor:{}", videoInfo.getName());
 
+            if(!gvod.isReady()) {
+                VideoOpErrorJSON errorDesc = new VideoOpErrorJSON(videoInfo, "gvod not ready");
+                return Response.status(Response.Status.SERVICE_UNAVAILABLE).entity(errorDesc).build();
+            }
+
             SettableFuture<Result<Boolean>> myFuture = SettableFuture.create();
             gvod.upload(videoInfo, myFuture);
             try {
@@ -184,7 +202,7 @@ public class GVoDRESTMsgs {
                     return Response.status(Response.Status.OK).entity(videoInfo).build();
                 } else {
                     VideoOpErrorJSON errorDesc = new VideoOpErrorJSON(videoInfo, result.getDetails());
-                    return Response.status(ResponseStatusWSMapper.map(result.status)).entity(result.getDetails()).build();
+                    return Response.status(ResponseStatusWSMapper.map(result.status)).entity(errorDesc).build();
                 }
             } catch (InterruptedException ex) {
                 LOG.error("sending upload response:{}", Response.Status.INTERNAL_SERVER_ERROR);
@@ -212,6 +230,12 @@ public class GVoDRESTMsgs {
         @PUT
         public Response downloadVideo(VideoInfo videoInfo) {
             LOG.info("received download request for:{}", videoInfo.getName());
+            
+            if(!gvod.isReady()) {
+                VideoOpErrorJSON errorDesc = new VideoOpErrorJSON(videoInfo, "gvod not ready");
+                return Response.status(Response.Status.SERVICE_UNAVAILABLE).entity(errorDesc).build();
+            }
+
 
             SettableFuture<Result<Boolean>> myFuture = SettableFuture.create();
             gvod.download(videoInfo, myFuture);
@@ -222,7 +246,7 @@ public class GVoDRESTMsgs {
                     return Response.status(Response.Status.OK).entity(videoInfo).build();
                 } else {
                     VideoOpErrorJSON errorDesc = new VideoOpErrorJSON(videoInfo, result.getDetails());
-                    return Response.status(ResponseStatusWSMapper.map(result.status)).entity(result.getDetails()).build();
+                    return Response.status(ResponseStatusWSMapper.map(result.status)).entity(errorDesc).build();
                 }
             } catch (InterruptedException ex) {
                 LOG.error("sending download response:{}", Response.Status.INTERNAL_SERVER_ERROR);
@@ -250,6 +274,11 @@ public class GVoDRESTMsgs {
         @PUT
         public Response removeVideo(VideoInfo videoInfo) {
             LOG.info("received remove request for:{}", videoInfo.getName());
+            if(!gvod.isReady()) {
+                VideoOpErrorJSON errorDesc = new VideoOpErrorJSON(videoInfo, "gvod not ready");
+                return Response.status(Response.Status.SERVICE_UNAVAILABLE).entity(errorDesc).build();
+            }
+
 
             SettableFuture<Result<Boolean>> myFuture = SettableFuture.create();
 
@@ -263,7 +292,7 @@ public class GVoDRESTMsgs {
                     return Response.status(Response.Status.OK).entity(videoInfo).build();
                 } else {
                     VideoOpErrorJSON errorDesc = new VideoOpErrorJSON(videoInfo, result.getDetails());
-                    return Response.status(ResponseStatusWSMapper.map(result.status)).entity(result.getDetails()).build();
+                    return Response.status(ResponseStatusWSMapper.map(result.status)).entity(errorDesc).build();
                 }
             } catch (InterruptedException ex) {
                 LOG.error("sending remove response:{}", Response.Status.INTERNAL_SERVER_ERROR);
@@ -291,6 +320,11 @@ public class GVoDRESTMsgs {
         @PUT
         public Response playVideo(VideoInfo videoInfo) {
             LOG.info("received play request for:{}", videoInfo.getName());
+            
+            if(!gvod.isReady()) {
+                VideoOpErrorJSON errorDesc = new VideoOpErrorJSON(videoInfo, "gvod not ready");
+                return Response.status(Response.Status.SERVICE_UNAVAILABLE).entity(errorDesc).build();
+            }
 
             SettableFuture<Result<Integer>> myFuture = SettableFuture.create();
             gvod.play(videoInfo, myFuture);
@@ -302,7 +336,7 @@ public class GVoDRESTMsgs {
                     return Response.status(Response.Status.OK).entity(new PlayResponseJSON(videoInfo, result.value.get())).build();
                 } else {
                     VideoOpErrorJSON errorDesc = new VideoOpErrorJSON(videoInfo, result.getDetails());
-                    return Response.status(ResponseStatusWSMapper.map(result.status)).entity(result.getDetails()).build();
+                    return Response.status(ResponseStatusWSMapper.map(result.status)).entity(errorDesc).build();
                 }
             } catch (InterruptedException ex) {
                 LOG.error("sending play response:{}", Response.Status.INTERNAL_SERVER_ERROR);
@@ -330,6 +364,11 @@ public class GVoDRESTMsgs {
         public Response stopVideo(VideoInfo videoInfo) {
             LOG.info("received stop request for:{}", videoInfo.getName());
             
+            if(!gvod.isReady()) {
+                VideoOpErrorJSON errorDesc = new VideoOpErrorJSON(videoInfo, "gvod not ready");
+                return Response.status(Response.Status.SERVICE_UNAVAILABLE).entity(errorDesc).build();
+            }
+
             SettableFuture<Result<Boolean>> myFuture = SettableFuture.create();
             gvod.stop(videoInfo, myFuture);
             
@@ -341,7 +380,7 @@ public class GVoDRESTMsgs {
                     return Response.status(Response.Status.OK).entity(videoInfo).build();
                 } else {
                     VideoOpErrorJSON errorDesc = new VideoOpErrorJSON(videoInfo, result.getDetails());
-                    return Response.status(ResponseStatusWSMapper.map(result.status)).entity(result.getDetails()).build();
+                    return Response.status(ResponseStatusWSMapper.map(result.status)).entity(errorDesc).build();
                 }
             } catch (InterruptedException ex) {
                 LOG.error("sending upload response:{}", Response.Status.INTERNAL_SERVER_ERROR);

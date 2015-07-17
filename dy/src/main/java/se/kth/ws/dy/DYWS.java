@@ -16,10 +16,10 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package se.kth.ws.gvod;
+package se.kth.ws.dy;
 
-import se.sics.gvod.manager.toolbox.GVoDSyncI;
 import com.google.common.util.concurrent.SettableFuture;
+import se.kth.ws.sweep.core.SweepSyncI;
 import com.yammer.dropwizard.Service;
 import com.yammer.dropwizard.assets.AssetsBundle;
 import com.yammer.dropwizard.config.Bootstrap;
@@ -29,27 +29,33 @@ import java.util.concurrent.ExecutionException;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import se.kth.ws.gvod.GVoDRESTMsgs;
+import se.kth.ws.sweep.SweepRESTMsgs;
+import se.sics.gvod.manager.toolbox.GVoDSyncI;
 
 /**
- * @author Alex Ormenisan <aaor@sics.se>
+ * @author Alex Ormenisan <aaor@kth.se>
  */
-public class GVoDWS extends Service<Configuration> {
+public class DYWS extends Service<Configuration> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(GVoDWS.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DYWSLauncher.class);
 
     private SettableFuture<GVoDSyncI> gvodSyncIFuture;
+    private SweepSyncI sweepSyncI;
 
-    public GVoDWS(SettableFuture<GVoDSyncI> gvodSyncIFuture) {
+    public DYWS(SweepSyncI sweepSyncI, SettableFuture<GVoDSyncI> gvodSyncIFuture) {
+        this.sweepSyncI = sweepSyncI;
         this.gvodSyncIFuture = gvodSyncIFuture;
     }
 
     @Override
     public void initialize(Bootstrap<Configuration> bootstrap) {
-        bootstrap.addBundle(new AssetsBundle("/interface/", "/gvod/"));
+        bootstrap.addBundle(new AssetsBundle("/interface/", "/webapp/"));
     }
 
     @Override
     public void run(Configuration configuration, Environment environment) throws Exception {
+        
         GVoDSyncI gvodSyncI = null;
         try {
             LOG.info("waiting on creation of gvod synchronous interface");
@@ -62,7 +68,10 @@ public class GVoDWS extends Service<Configuration> {
             LOG.error("gvod synchronous interface was not instantiated - possible wrong creation order");
             throw new RuntimeException(ex);
         }
-
+        
+        environment.addProvider(new SweepRESTMsgs.SearchIndexResource(sweepSyncI));
+        environment.addProvider(new SweepRESTMsgs.AddIndexResource(sweepSyncI));
+        
         environment.addProvider(new GVoDRESTMsgs.LibraryResource(gvodSyncI));
         environment.addProvider(new GVoDRESTMsgs.FilesResource(gvodSyncI));
         environment.addProvider(new GVoDRESTMsgs.PendingUploadResource(gvodSyncI));

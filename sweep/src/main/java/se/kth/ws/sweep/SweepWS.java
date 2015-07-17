@@ -19,13 +19,11 @@
 package se.kth.ws.sweep;
 
 import se.kth.ws.sweep.core.SweepSyncI;
-import com.google.common.util.concurrent.SettableFuture;
 import com.yammer.dropwizard.Service;
 import com.yammer.dropwizard.assets.AssetsBundle;
 import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.config.Configuration;
 import com.yammer.dropwizard.config.Environment;
-import java.util.concurrent.ExecutionException;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

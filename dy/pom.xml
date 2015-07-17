@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>se.kth.ws</groupId>
+    <artifactId>Webservices</artifactId>
+    <version>2.0-SNAPSHOT</version>
+  </parent>
+  <groupId>se.kth.ws</groupId>
+  <artifactId>dy</artifactId>
+  <version>2.0-SNAPSHOT</version>
+  <name>DY WS</name>
+  <url>http://maven.apache.org</url>
+  
+  <properties>
+      <sweepws-version>2.0-SNAPSHOT</sweepws-version>
+      <gvodws-version>2.0-SNAPSHOT</gvodws-version>
+  </properties>
+  
+  <dependencies>
+      <dependency>
+          <groupId>se.kth.ws</groupId>
+          <artifactId>sweep</artifactId>
+          <version>${sweepws-version}</version>
+      </dependency>
+      <dependency>
+          <groupId>se.kth.ws</groupId>
+          <artifactId>gvod</artifactId>
+          <version>${gvodws-version}</version>
+      </dependency>
+  </dependencies>
+</project>
