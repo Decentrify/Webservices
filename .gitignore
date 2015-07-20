@@ -3,4 +3,4 @@
 /dy/target/
 *.iml
 .idea/
-
+*.log

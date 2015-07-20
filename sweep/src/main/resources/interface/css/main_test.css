@@ -1,0 +1,33 @@
+body{
+    padding-top: 70px;
+}
+
+
+div .search-image{
+    background-image: url(../image/Galaxies_image.png);
+    height: 500px;
+}
+
+
+div .statistics-image {
+    background-image: url(../image/Statistics.jpg);
+    height: 200px;
+}
+
+div .search-image h1{
+    margin-top: 180px;
+}
+
+.features .glyphicon{
+    font-size: 32px;
+    
+}
+
+.top-buffer{
+    margin-top : 30px;
+}
+
+.bottom-buffer{
+    margin-bottom: 30px
+    
+}

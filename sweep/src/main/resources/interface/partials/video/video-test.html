@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Main Test Page</title>
+    <link rel="stylesheet" href="../../css/video/main.css">
+    <link rel="stylesheet" href="../../css/bootstrap/bootstrap.css"/>
+</head>
+<body>
+
+<!-- This is the main file for testing video player. -->
+<div ng-app="myApp" ng-controller="HomeCtrl">
+    <div class='videogular-container'>
+        <videogular vg-theme="config.theme" vg-player-ready="onPlayerReady($API)" vg-update-time="onUpdateTime($currentTime,$duration)">
+
+            <vg-media vg-src="config.sources">
+            </vg-media>
+
+            <vg-controls>
+                <vg-play-pause-button></vg-play-pause-button>
+                <vg-time-display>{{ currentTime | date:'mm:ss' }}</vg-time-display>
+                <vg-scrub-bar>
+                    <vg-scrub-bar-current-time></vg-scrub-bar-current-time>
+                </vg-scrub-bar>
+                <vg-time-display>{{ timeLeft | date:'mm:ss' }}</vg-time-display>
+                <vg-volume>
+                    <vg-mute-button></vg-mute-button>
+                    <vg-volume-bar></vg-volume-bar>
+                </vg-volume>
+                <vg-fullscreen-button></vg-fullscreen-button>
+            </vg-controls>
+
+            <vg-overlay-play></vg-overlay-play>
+            <vg-poster vg-url='config.plugins.poster'></vg-poster>
+
+        </videogular>
+    </div>
+
+    <hr/>
+    
+    <div style="width: 500px; margin: 0 auto">
+        
+        <form name="dynamicLinkForm" ng-submit="updateAndPlay()" novalidate class="well">
+            
+            <div class="form-group">
+                <label> File Name: </label>
+                <input type="text" class="form-control" required ng-model="linkForm.name"/>
+            </div>
+            
+            <div class="form-group">
+                <label> Port </label>
+                <input type="text" class="form-control" required ng-model="linkForm.port"/>
+            </div>
+            
+            
+            <div class="form-group">
+                <label> Link Generated</label>
+                <input type="text" class="form-control" disabled ng-model="linkForm.linkGenerated">
+            </div>
+            
+            <div class="form-group">
+                <button class="btn btn-success">Update & Play</button>
+            </div>
+
+        </form>
+        
+    </div>
+    
+    
+    
+</div>
+
+
+
+
+<script src="../../components/angular/angular.min.js"></script>
+<script src="../../components/angular-sanitize/angular-sanitize.min.js"></script>
+<script src="../../components/videogular/videogular.js"></script>
+<script src="../../components/videogular-controls/vg-controls.js"></script>
+<script src="../../components/videogular-overlay-play/vg-overlay-play.js"></script>
+<script src="../../components/videogular-poster/vg-poster.js"></script>
+<script src="../../components/videogular-buffering/vg-buffering.js"></script>
+<script src="../../components/bootstrap/bootstrap.js"></script>
+<script src="../../components/jquery/jquery.min.js"></script>
+<script src="../../js/video/VideoController.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html ng-app="sweepMain">
+
+<head>
+    <!--<base href="/">-->
+    <meta charset="UTF-8">
+    <title>Let's Sweep.</title>
+    <link rel="stylesheet" href="css/bootstrap/bootstrap.css"/>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+
+<div ng-include='"templates/sidebar.html"'></div>
+
+<!-- Replacement Div -->
+<div ng-view> </div>
+
+<script src="components/angular/angular.js"></script>
+<script src="components/angular-route/angular-route.js"></script>
+<script src="js/main/sweep-main.js"></script>
+<script src="js/main/SidebarController.js"></script>
+<script src="js/search/SearchController.js"></script>
+<script src="js/service/sweep-service.js"></script>
+<script src="js/service/gvod-service.js"></script>
+<script src="components/jquery/jquery.min.js"></script>
+<script src="components/bootstrap/bootstrap.js"></script>
+</body>
+</html>
