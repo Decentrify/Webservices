@@ -13,8 +13,8 @@
 
 <body>
 
-<div class="notifications" ng-controller="AlertCtrl">
-    <alert ng-repeat="alert in alerts" type="{{alert.type}}" close="closeAlert($index)">{{alert.msg}}</alert>
+<div class="notifications" ng-controller="AlertCtrl as alertCtrl">
+    <alert ng-repeat="alert in alertCtrl.alerts" type="{{alert.type}}" close="alertCtrl.closeAlert($index)">{{alert.msg}}</alert>
 </div>
 
 <div class="navbar navbar-default navbar-fixed-top" ng-controller="BoardHeaderController as headerController">
@@ -33,7 +33,7 @@
             </li>
         </ul>
         
-        <form name ="searchForm" class="navbar-form navbar-left" ng-submit="headerController.search(searchObj.searchTerm)" role="search" novalidate>
+        <form name ="headerController.searchForm" class="navbar-form navbar-left" ng-submit="headerController.search(searchObj.searchTerm)" role="search" novalidate>
             
             <div class="input-group" style="width: 660px; margin-left: 50px">
                 <input type="text" class="form-control" placeholder="Search" name="srch-term" id="srch-term" ng-model="searchObj.searchTerm" required>

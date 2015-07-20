@@ -1,52 +1,91 @@
-/**
- * Created by babbarshaer on 2015-02-05.
- */
+(function () {
+
+    'use strict';
+
+    angular.module('app')
+
+        .controller('SearchController', ['$log', '$scope', '$routeParams', 'sweepService', 'gvodService', SearchController])
+        .directive('searchResult', ['$log', searchResult]);
+
+    /**
+     * Main function representing a simple directive
+     * for displaying the search results.
+     *
+     * @param $log
+     * @returns {{restrict: string, templateUrl: string}}
+     */
+    function searchResult($log) {
+
+        return {
+            restrict: 'AE',
+            templateUrl: 'partials/search/search-result.html'
+        }
+    }
 
 
+    /**
+     * Main Controller respnsible for handling the search of the
+     * metadata and pagination. In addition to this, it also handles the
+     * video player bootup and dispose protocols.
+     *
+     * @param $log
+     * @param $scope
+     * @param $routeParams
+     * @param sweepService
+     * @param gvodService
+     * @constructor
+     */
+    function SearchController($log, $scope, $routeParams, sweepService, gvodService) {
 
-angular.module('app')
-
-    .controller('SearchController', ['$log', '$scope', '$routeParams', 'sweepService','gvodService', function ($log, $scope, $routeParams, sweepService, gvodService) {
-
+        var self = this;
         var _defaultPrefix = "http://";
 
-        function _getDummyResults() {
+        /**
+         * Initialization of the scope.
+         * @param scope
+         */
 
-            return [
-                {
-                    fileName: 'Avengers: Age of Ultron',
-                    uploaded: new Date(),
-                    description: 'When Tony Stark tries to jumpstart a dormant peacekeeping program, things go awry and it is up to the Avengers to stop the villainous Ultron from enacting his terrible plans.',
-                    url: 1
+        self.search = {};
+        self.search.searchText = $routeParams.searchText;
+        self.playerName = 'main_player';
 
-                },
-                {
-                    fileName: 'Iris',
-                    uploaded: new Date(),
-                    description: 'A documentary about fashion icon Iris Apfel from legendary documentary filmmaker Albert Maysles.',
-                    url: 1
-                },
-                {
-                    fileName: 'Cloud Atlas',
-                    uploaded: new Date(),
-                    description: 'An exploration of how the actions of individual lives impact one another in the past, present and future, as one soul is shaped from a killer into a hero, and an act of kindness ripples across centuries to inspire a revolution.',
-                    url: 1
-                },
-                {
-                    fileName: 'Fight Club',
-                    uploaded: new Date(),
-                    description: 'An insomniac office worker looking for a way to change his life crosses paths with a devil-may-care soap maker and they form an underground fight club that evolves into something much, much more...',
-                    url: 1
-                },
-                {
-                    fileName: 'The Dark Knight',
-                    uploaded: new Date(),
-                    description: 'When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, the caped crusader must come to terms with one of the greatest psychological tests of his ability to fight injustice.',
-                    url: 1
+        // Initialize Resources.
+        _search(self.search.searchText);
+
+        //scope.search.result = _getDummyResults();
+
+        // Initialize Player.
+        _initializePlayer(self.playerName);
+
+        // Destroy Player Call Back.
+        $scope.$on('$destroy', function () {
+
+            $log.info('Destroy the video player instance.');
+            if (self.player != null) {
+
+                self.player.dispose();
+                if (self.currentVideoResource != null) {
+                    gvodService.stop(self.currentVideoResource);
                 }
+            }
+        });
 
-            ]
-        }
+        /**
+         * Play the provided video resource.
+         * @param data
+         */
+        self.playResource = function (data) {
+
+            $log.debug('Play Resource called with : ' + data);
+
+            var json = {
+                name: data["fileName"],
+                overlayId: parseInt(data["url"])
+            };
+
+            $log.debug('Reconstructing play call with : ' + json);
+            _updateAndPlay(self.player, self.currentVideoResource, angular.copy(json));
+        };
 
 
         /**
@@ -72,12 +111,11 @@ angular.module('app')
                     // 3. Handle the response from the gvod and based on response decide further course of action.
                     .success(function (data) {
 
-                        $log.info(" Gvod Has successfully stopped playing the video.");
+                        $log.debug(" Gvod Has successfully stopped playing the video.");
                         _startPlaying(player, newResource);
                     })
-
                     .error(function (data) {
-                        $log.info(" Unable to stop the resource. ");
+                        $log.debug(" Unable to stop the resource. ");
                     })
             }
             else {
@@ -101,8 +139,9 @@ angular.module('app')
 
                 .success(function (data) {
 
-                    $log.info("Got the port from gvod: " + data);
-                    $scope.currentVideoResource = resource;
+                    $log.debug("Got the port from gvod: " + data);
+
+                    self.currentVideoResource = resource;
                     var src = _defaultPrefix.concat(gvodService.getServer().ip).concat(":").concat(data).concat('/').concat(name).concat('/').concat(name);
 
                     $log.info("Source for the player constructed: " + src);
@@ -116,7 +155,7 @@ angular.module('app')
                     player.play();
                 })
 
-                .error(function(data){
+                .error(function (data) {
                     $log.warn(" gvod play service replied with error.");
                 })
         }
@@ -124,76 +163,18 @@ angular.module('app')
 
         /**
          * Constructor function for creating the playback resource.
-         *
-         * @param obj scope variable for player
          * @param playerName Player Name
          * @private
          */
         function _initializePlayer(playerName) {
 
-            $scope.player = videojs(playerName, {}, function () {
+            self.player = videojs(playerName, {}, function () {
             });
-            $scope.player.dimensions("100%", "100%");
-            $scope.player.controls(true);
+            self.player.dimensions("100%", "100%");
+            self.player.controls(true);
 
-            return $scope.player;
+            return self.player;
         }
-
-        /**
-         * Initialization of the scope.
-         * @param scope
-         */
-        function initScope(scope) {
-
-            scope.search = {};
-            scope.search.searchText = $routeParams.searchText;
-            scope.playerName = 'main_player';
-
-            // Initialize Resources.
-            _search(scope.search.searchText);
-
-            //scope.search.result = _getDummyResults();
-
-            // Initialize Player.
-            _initializePlayer(scope.playerName);
-
-            // Destroy Player Call Back.
-            scope.$on('$destroy', function () {
-
-                $log.info('Destroy the video player instance.');
-                if (scope.player != null) {
-
-                    scope.player.dispose();
-                    if(scope.currentVideoResource != null){
-                        gvodService.stop($scope.currentVideoResource);
-                    }
-                }
-            })
-        }
-
-
-        /**
-         * Play the provided video resource.
-         * @param data
-         */
-        $scope.playResource = function (data) {
-
-            $log.info('Play Resource called with : ' + data);
-
-            var json = {
-                name: data["fileName"],
-                overlayId: parseInt(data["url"])
-            };
-
-            //var test_json = {
-            //    name: 'demo.mp4',
-            //    overlayId: 12
-            //};
-
-            $log.info('Reconstructing play call with : ' + json);
-
-            _updateAndPlay($scope.player, $scope.currentVideoResource, angular.copy(json));
-        };
 
 
         /**
@@ -205,7 +186,7 @@ angular.module('app')
          */
         function _search(searchTerm) {
 
-            $log.info("Going to perform search for : " + searchTerm);
+            $log.debug("Going to perform search for : " + searchTerm);
 
             var searchObj = {
                 fileNamePattern: searchTerm,
@@ -215,22 +196,15 @@ angular.module('app')
             sweepService.performSearch(searchObj)
 
                 .success(function (data) {
-                    $log.info('Sweep Service -> Successful');
-                    $scope.search.result = data;
+                    $log.debug('Sweep Service -> Successful');
+                    self.search.result = data;
                 })
 
                 .error(function (data) {
-                    $log.info('Sweep Service -> Error' + data);
+                    $log.warn('Sweep Service -> Error' + data);
                 })
         }
 
-        initScope($scope);
 
-    }])
-
-    .directive('searchResult', ['$log', function ($log) {
-        return {
-            restrict: 'AE',
-            templateUrl: 'partials/search/search-result.html'
-        }
-    }]);
+    }
+}());
