@@ -17,7 +17,7 @@
     <alert ng-repeat="alert in alerts" type="{{alert.type}}" close="closeAlert($index)">{{alert.msg}}</alert>
 </div>
 
-<div class="navbar navbar-default navbar-fixed-top" ng-controller="BoardHeaderController">
+<div class="navbar navbar-default navbar-fixed-top" ng-controller="BoardHeaderController as headerController">
 
     <div class="container">
         
@@ -33,7 +33,7 @@
             </li>
         </ul>
         
-        <form name ="searchForm" class="navbar-form navbar-left" ng-submit="search(searchObj.searchTerm)" role="search" novalidate>
+        <form name ="searchForm" class="navbar-form navbar-left" ng-submit="headerController.search(searchObj.searchTerm)" role="search" novalidate>
             
             <div class="input-group" style="width: 660px; margin-left: 50px">
                 <input type="text" class="form-control" placeholder="Search" name="srch-term" id="srch-term" ng-model="searchObj.searchTerm" required>
@@ -45,12 +45,12 @@
         </form>
 
         <ul class="nav navbar-nav navbar-right">
-            <li><a href ng-click="routeTo('/statistics')">Statistics</a></li>
-            <li><a href ng-click="routeTo('/upload-landing')">Upload</a></li>
+            <li><a href ng-click="headerController.routeTo('/statistics')">Statistics</a></li>
+            <li><a href ng-click="headerController.routeTo('/upload-landing')">Upload</a></li>
             <li class="dropdown">
                 <a href class="dropdown-toggle" data-toggle="dropdown" role="button">Help<span class="caret"></span></a>
                 <ul class="dropdown-menu" role="menu">
-                    <li><a href ng-click="routeTo('/about')">About Us</a></li>
+                    <li><a href ng-click="headerController.routeTo('/about')">About Us</a></li>
                     <!--<li><a href ng-click="routeTo('/video')">Video Test</a></li>-->
                 </ul>
             </li>
