@@ -5,14 +5,17 @@ angular.module('app', [
     'nvd3',
     'ui.bootstrap'
     ])
-    .config(['$routeProvider', function($routeProvider){
+    .config(['$routeProvider','$logProvider', function($routeProvider, $logProvider){
+
+        $logProvider.debugEnabled(true);
 
         $routeProvider
 
             .when('/',
             {
                 templateUrl: 'partials/main/landing-page.html',
-                controller: 'LandingController'
+                controller: 'LandingController',
+                controllerAs: 'landingController'
             })
             .when('/search',
             {

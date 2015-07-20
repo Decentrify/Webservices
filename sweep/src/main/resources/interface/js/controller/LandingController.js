@@ -1,34 +1,35 @@
 'use strict';
 
 angular.module('app')
-    .controller('LandingController', ['$log','$location','$scope','AlertService', function($log, $location, $scope, AlertService){
-        $log.info("Current Host Location: " + $location.host());
-        $log.info('Landing Controller Initialized.');
+
+    .controller('LandingController', ['$log','$location','$scope','AlertService', LandingController]);
 
 
-        $scope.$on('gvod-server:updated', function (event, data) {
+function LandingController($log, $location, $scope, AlertService){
 
-            $log.info('gvod server updated');
-            $log.info(data);
+    $log.debug("Current Host Location: " + $location.host());
+    $log.debug('Landing Controller Initialized.');
 
-            $scope.$apply(function(){
-                AlertService.addAlert({type: 'success', msg: 'Gvod Server Details Updated. '});
-            })
+    $scope.$on('gvod-server:updated', function (event, data) {
 
-        });
+        $log.debug('gvod server updated');
+        $log.debug(data);
 
+        $scope.$apply(function(){
+            AlertService.addAlert({type: 'success', msg: 'Gvod Server Details Updated. '});
+        })
 
-        $scope.$on('sweep-server:updated', function (event, data) {
-
-            $log.info('sweep server updated');
-            $log.info(data);
-
-            $scope.$apply(function(){
-                AlertService.addAlert({type: 'success', msg: 'Sweep Server Details Updated. '});
-            })
-
-        });
+    });
 
 
+    $scope.$on('sweep-server:updated', function (event, data) {
 
-    }]);
+        $log.debug('sweep server updated');
+        $log.debug(data);
+
+        $scope.$apply(function(){
+            AlertService.addAlert({type: 'success', msg: 'Sweep Server Details Updated. '});
+        })
+
+    });
+}
