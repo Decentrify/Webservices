@@ -16,6 +16,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <dropwizard.version>0.6.2</dropwizard.version>
         <jetty.version>8.1.10.v20130312</jetty.version>
+        <gvod>0.0.3-SNAPSHOT</gvod>
     </properties>
   
     <dependencies>
@@ -33,7 +34,7 @@
         <dependency>
             <groupId>se.sics.gvod</groupId>
             <artifactId>manager</artifactId>
-            <version>0.0.2-SNAPSHOT</version>
+            <version>${gvod}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -45,7 +46,7 @@
         <dependency>
             <groupId>se.sics.gvod</groupId>
             <artifactId>system</artifactId>
-            <version>0.0.2-SNAPSHOT</version>
+            <version>${gvod}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
