@@ -2,10 +2,12 @@
  * Created by babbar on 2015-03-18.
  */
 
+(function () {
 
-angular.module('app')
+    angular.module('app')
+        .service('aggregatorService', ['$log', '$http', '$location', aggregatorService]);
 
-    .service('aggregatorService',['$log','$http','$location', function($log, $http, $location){
+    function aggregatorService($log, $http, $location) {
 
         // Default Objects.
         var _defaultMethod = 'PUT';
@@ -13,7 +15,7 @@ angular.module('app')
         var _defaultIp = "http://" + $location.host() + (":9100");
 
 
-        function _getPromiseObject(method, url, headers, data){
+        function _getPromiseObject(method, url, headers, data) {
             return $http({
                 method: method,
                 url: url,
@@ -24,15 +26,19 @@ angular.module('app')
 
         return {
 
-            getSimpleModelView : function(){
+            getSimpleModelView: function () {
                 var url = _defaultIp.concat("/systemsimplemodel");
                 return _getPromiseObject('GET', url, _defaultHeader);
             },
 
-            handshake : function(){
+            handshake: function () {
                 var url = _defaultIp.concat("/handshake");
                 return _getPromiseObject('GET', url, _defaultHeader);
             }
-
         }
-    }]);
+    }
+
+
+}());
+
+

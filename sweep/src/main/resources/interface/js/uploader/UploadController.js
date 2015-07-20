@@ -1,8 +1,22 @@
-'use strict';
+(function () {
 
-angular.module('app')
+    angular.module('app')
 
-    .filter('waitingUpload', ['$log', function ($log) {
+        .filter('waitingUpload', ['$log', waitingUpload])
+        .filter('uploaded', ['$log', uploaded])
+        .controller('UploadController', ['$log', '$scope', 'common', 'gvodService', UploadController])
+        .controller('EntryUploadController', ['$log', '$scope', '$q', 'gvodService', 'sweepService', 'AlertService', EntryUploadController]);
+
+
+    /**
+     * Directive function used to separate the entries in the
+     * waiting upload category based on the status provided by
+     * the streaming service.
+     *
+     * @param $log
+     * @returns {Function}
+     */
+    function waitingUpload($log) {
 
         return function (data) {
             var filteredData = [];
@@ -18,10 +32,16 @@ angular.module('app')
             }
             return filteredData;
         }
+    }
 
-    }])
-
-    .filter('uploaded', ['$log', function ($log) {
+    /**
+     * Directive function used to separate the entries in the upload category
+     * based on the successful upload of the entries in the system.
+     *
+     * @param $log
+     * @returns {Function}
+     */
+    function uploaded($log) {
 
         return function (data) {
             var filteredData = [];
@@ -36,23 +56,45 @@ angular.module('app')
             }
             return filteredData;
         }
+    }
 
-    }])
 
-    .controller('UploadController', ['$log', '$scope', 'common', 'gvodService', function ($log, $scope, common, gvodService) {
+    /**
+     * Main Controller for the landing page for the uploader.
+     * The main function is to route to the main upload page.
+     *
+     * @param $log
+     * @param $scope
+     * @param common
+     * @param gvodService
+     * @constructor
+     */
+    function UploadController($log, $scope, common, gvodService) {
 
         function _initScope(scope) {
 
             scope.routeTo = function (path) {
                 common.routeTo(path);
             };
-
         }
 
         _initScope($scope);
-    }])
+    }
 
-    .controller('EntryUploadController', ['$log', '$scope','$q', 'gvodService', 'sweepService', 'AlertService', function ($log, $scope,$q, gvodService, sweepService, AlertService) {
+    /**
+     * The core controller of the uplading the entries to the system.
+     * The controller captures metadata from the users and then performs a series
+     * of well defined tasks.
+     *
+     * @param $log
+     * @param $scope
+     * @param $q
+     * @param gvodService
+     * @param sweepService
+     * @param AlertService
+     * @constructor
+     */
+    function EntryUploadController($log, $scope, $q, gvodService, sweepService, AlertService) {
 
 
         // UTILITY FUNCTION.
@@ -100,6 +142,14 @@ angular.module('app')
                 });
         }
 
+        /**
+         * Internal cleaning and removing old entries.
+         * The house keeping is performed after every upload to clear
+         * the previous entries metadata.
+         *
+         * @param data
+         * @private
+         */
         function _houseKeeping(data) {
 
             data.fileName = null;
@@ -108,10 +158,25 @@ angular.module('app')
             _resetFormStatus();
         }
 
+        /**
+         * The status associated with the form needs to be
+         * reset as user will try to add a new entry and the validations
+         * need to run again.
+         * @private
+         */
         function _resetFormStatus() {
             $scope.entryAdditionForm.$setPristine();
         }
 
+        /**
+         * ********************
+         * Main Entry Point to initializing the
+         * scope.
+         * ********************
+         *
+         * @param scope
+         * @private
+         */
         function _initScope(scope) {
 
             // ==== INITIAL SETUP.
@@ -119,7 +184,7 @@ angular.module('app')
             scope.server = gvodService.getServer();
             scope.indexEntryData = {
 
-                fileName:  null,
+                fileName: null,
                 language: 'English',
                 fileSize: 1,
                 category: 'Video'
@@ -146,26 +211,26 @@ angular.module('app')
         }
 
         /**
-         * Submit Index Entries in the
-         * system.
+         * Main method of adding the entries in the system. All
+         * the entries needs to be
          */
-        $scope.submitIndexEntry = function(){
+        $scope.submitIndexEntry = function () {
 
             if (this.entryAdditionForm.$valid) {
 
                 var lastSubmitEntry = $scope.indexEntryData;
-                var uploadObj = { name: lastSubmitEntry.fileName, overlayId: parseInt(lastSubmitEntry.url) };
+                var uploadObj = {name: lastSubmitEntry.fileName, overlayId: parseInt(lastSubmitEntry.url)};
 
                 gvodService.pendingUpload(uploadObj)
 
-                    .then(function(response){
+                    .then(function (response) {
 
                         $log.debug("gvod pending upload successful");
                         lastSubmitEntry.url = response.data.overlayId.toString();
 
-                        return  sweepService.addIndexEntry(lastSubmitEntry);
+                        return sweepService.addIndexEntry(lastSubmitEntry);
 
-                    }, function(error){
+                    }, function (error) {
 
                         $log.debug("Gvod Upload Failed ... ");
                         return $q.reject(error);
@@ -213,10 +278,10 @@ angular.module('app')
          * Remove Entry from the Library.
          * @param entry
          */
-        $scope.removeVideo = function(entry){
+        $scope.removeVideo = function (entry) {
 
             AlertService.addAlert({type: 'info', msg: 'Functionality under development.'});
-            if(entry != null && entry.fileName != null){
+            if (entry != null && entry.fileName != null) {
                 //gvodService.removeVideo({name: entry.fileName, overlayId: -1});
             }
         };
@@ -227,4 +292,7 @@ angular.module('app')
          */
         _initScope($scope);
 
-    }]);
+    }
+
+}());
+
