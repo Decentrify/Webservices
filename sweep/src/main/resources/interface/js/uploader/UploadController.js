@@ -182,12 +182,15 @@
             // ==== INITIAL SETUP.
 
             scope.server = gvodService.getServer();
-            scope.indexEntryData = {
+            scope.data = {
 
-                fileName: null,
-                language: 'English',
-                fileSize: 1,
-                category: 'Video'
+                entry: {
+                    
+                    fileName: null,
+                    language: 'English',
+                    fileSize: 1,
+                    category: 'Video'
+                }
             };
 
             _initializeLibrary();
@@ -218,7 +221,7 @@
 
             if (this.entryAdditionForm.$valid) {
 
-                var lastSubmitEntry = $scope.indexEntryData;
+                var lastSubmitEntry = $scope.data.entry;
                 var uploadObj = {name: lastSubmitEntry.fileName, overlayId: parseInt(lastSubmitEntry.url)};
 
                 gvodService.pendingUpload(uploadObj)
@@ -228,7 +231,7 @@
                         $log.debug("gvod pending upload successful");
                         lastSubmitEntry.url = response.data.overlayId.toString();
 
-                        return sweepService.addIndexEntry(lastSubmitEntry);
+                        return sweepService.addIndexEntry($scope.data);
 
                     }, function (error) {
 

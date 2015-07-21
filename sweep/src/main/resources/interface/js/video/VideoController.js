@@ -2,7 +2,7 @@
 
     'use strict';
     angular.module('app')
-        .controller('VideoController', ['$scope', '$log', 'gvodService', videoController()]);
+        .controller('VideoController', ['$scope', '$log', 'gvodService', videoController]);
 
     function videoController($scope, $log, $gvodService) {
 

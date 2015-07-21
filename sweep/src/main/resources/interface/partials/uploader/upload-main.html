@@ -10,7 +10,7 @@
                     <div class="panel-body">
                         <ul id="fileset" class="list-unstyled">
                             <li ng-repeat="file in files | waitingUpload">
-                                <label><input class="file" type="radio" name="fileSelected" ng-model="indexEntryData.fileName" value="{{file.name}}"  ng-checked= "file.isChecked"/> {{file.name}} </label>
+                                <label><input class="file" type="radio" name="fileSelected" ng-model="data.entry.fileName" value="{{file.name}}"  ng-checked= "file.isChecked"/> {{file.name}} </label>
                             </li>
                         </ul>
                     </div>
@@ -51,7 +51,7 @@
 
                     <div class="form-group">
                         <label class="control-label" for="desc">Description</label>
-                        <textarea id="desc" class="form-control" rows="20" placeholder="Description" ng-model="indexEntryData.description" required></textarea>
+                        <textarea id="desc" class="form-control" rows="20" placeholder="Description" ng-model="data.entry.description" required></textarea>
                     </div>
 
                     <div class="form-group text-right">
@@ -85,7 +85,7 @@
                 </div>
 
                 <div>
-                    <button style="width: 100%" class="btn btn-warning" ng-click="removeVideo(indexEntryData)">Remove Video</button>
+                    <button style="width: 100%" class="btn btn-warning" ng-click="removeVideo(data.entry)">Remove Video</button>
                 </div>
 
             </div>
