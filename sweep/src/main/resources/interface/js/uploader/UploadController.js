@@ -115,7 +115,7 @@
                     isCheckSet = true;
 
                     // Update the initial entry in the table.
-                    $scope.indexEntryData["fileName"] = obj["name"];
+                    $scope.data.entry["fileName"] = obj["name"];
                 }
                 else {
                     obj["isChecked"] = false;
@@ -257,7 +257,7 @@
 
                         $log.debug("Index Upload Successful");
 
-                        _houseKeeping($scope.indexEntryData);
+                        _houseKeeping($scope.data.entry);
                         _initializeLibrary();
 
                         AlertService.addAlert({type: 'success', msg: 'Upload Successful.'});
