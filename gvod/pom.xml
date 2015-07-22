@@ -55,4 +55,26 @@
             </exclusions>
         </dependency>
     </dependencies>
+    
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <finalName>webservice-gvod</finalName>
+                    <archive>
+                        <manifest>
+                            <mainClass>se.kth.ws.gvod.GVoDWSLauncher</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    
+    
 </project>

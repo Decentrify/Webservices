@@ -44,7 +44,20 @@ public class EntryJSON {
         this.category = entry.getCategory();
         this.description = entry.getDescription();
     }
-            
+
+
+    @Override
+    public String toString() {
+        return "EntryJSON{" +
+                "url='" + url + '\'' +
+                ", fileName='" + fileName + '\'' +
+                ", fileSize=" + fileSize +
+                ", language='" + language + '\'' +
+                ", category=" + category +
+                ", description='" + description + '\'' +
+                '}';
+    }
+
     public String getUrl() {
         return url;
     }

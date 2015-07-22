@@ -3,4 +3,8 @@
 /dy/target/
 *.iml
 .idea/
+*.log
+/sweep/lib/
+/gvod/lib/
+/lib/
 
