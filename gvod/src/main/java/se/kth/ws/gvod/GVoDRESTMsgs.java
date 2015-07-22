@@ -156,7 +156,7 @@ public class GVoDRESTMsgs {
                 Result<Boolean> result = myFuture.get();
                 LOG.info("sending pending upload response:{}", result.status.toString());
                 if (result.ok()) {
-                    return Response.status(Response.Status.OK).entity(videoInfo).build();
+                    return Response.status(Response.Status.OK).entity(ret).build();
                 } else {
                     VideoOpErrorJSON errorDesc = new VideoOpErrorJSON(videoInfo, result.getDetails());
                     return Response.status(ResponseStatusWSMapper.map(result.status)).entity(errorDesc).build();
