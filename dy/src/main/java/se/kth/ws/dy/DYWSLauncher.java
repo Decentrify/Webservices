@@ -24,6 +24,8 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigException;
 import com.typesafe.config.ConfigFactory;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.util.EnumSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.kth.ws.sweep.core.SweepSyncComponent;
@@ -35,6 +37,7 @@ import se.sics.gvod.config.GradientConfiguration;
 import se.sics.gvod.config.SearchConfiguration;
 import se.sics.gvod.manager.toolbox.GVoDSyncI;
 import se.sics.gvod.network.GVoDSerializerSetup;
+import se.sics.gvod.system.GVoDSystemSerializerSetup;
 import se.sics.gvod.system.HostManagerComp;
 import se.sics.gvod.system.HostManagerConfig;
 import se.sics.kompics.Component;
@@ -42,6 +45,7 @@ import se.sics.kompics.ComponentDefinition;
 import se.sics.kompics.Handler;
 import se.sics.kompics.Init;
 import se.sics.kompics.Kompics;
+import se.sics.kompics.Positive;
 import se.sics.kompics.Start;
 import se.sics.kompics.Stop;
 import se.sics.kompics.network.Network;
@@ -49,6 +53,9 @@ import se.sics.kompics.network.netty.NettyInit;
 import se.sics.kompics.network.netty.NettyNetwork;
 import se.sics.kompics.timer.Timer;
 import se.sics.kompics.timer.java.JavaTimer;
+import se.sics.ktoolbox.ipsolver.IpSolverComp;
+import se.sics.ktoolbox.ipsolver.IpSolverPort;
+import se.sics.ktoolbox.ipsolver.msg.GetIp;
 import se.sics.ms.common.ApplicationSelf;
 import se.sics.ms.configuration.MsConfig;
 import se.sics.ms.net.SerializerSetup;
@@ -74,7 +81,13 @@ import se.sics.p2ptoolbox.util.serializer.BasicSerializerSetup;
 public class DYWSLauncher extends ComponentDefinition {
 
     private Logger LOG = LoggerFactory.getLogger(DYWSLauncher.class);
+    private static GetIp.NetworkInterfacesMask ipType;
 
+    public static void setIpType(GetIp.NetworkInterfacesMask setIpType) {
+        ipType = setIpType;
+    }
+
+    private Component ipSolver;
     private Component network;
     private Component timer;
     private Component sweep;
@@ -93,26 +106,26 @@ public class DYWSLauncher extends ComponentDefinition {
 
     public DYWSLauncher() {
         LOG.info("initiating...");
+        if (ipType == null) {
+            LOG.error("launcher logic error - ipType not set");
+            throw new RuntimeException("launcher logic error - ipType not set");
+        }
+
         registerSerializers();
-
-        config = ConfigFactory.load();
-        systemConfig = new SystemConfig(config);
-        gvodConfig = new HostManagerConfig(config);
-
-        timer = create(JavaTimer.class, Init.NONE);
-        network = create(NettyNetwork.class, new NettyInit(systemConfig.self));
-
-        startCaracalProxy();
 
         subscribe(handleStart, control);
         subscribe(handleStop, control);
-        subscribe(handleCaracalReady, caracalProxy.getPositive(PeerManagerPort.class));
+
+        ipSolver = create(IpSolverComp.class, new IpSolverComp.IpSolverInit());
     }
 
     Handler handleStart = new Handler<Start>() {
         @Override
         public void handle(Start event) {
-            LOG.info("starting...");
+            LOG.info("starting: solvingIp");
+            Positive<IpSolverPort> ipSolverPort = ipSolver.getPositive(IpSolverPort.class);
+            subscribe(handleGetIp, ipSolverPort);
+            trigger(new GetIp.Req(EnumSet.of(ipType)), ipSolverPort);
         }
     };
 
@@ -120,6 +133,32 @@ public class DYWSLauncher extends ComponentDefinition {
         @Override
         public void handle(Stop event) {
             LOG.info("stopping...");
+        }
+    };
+
+    public Handler handleGetIp = new Handler<GetIp.Resp>() {
+        @Override
+        public void handle(GetIp.Resp resp) {
+            LOG.info("starting: setting up caracal connection");
+
+            InetAddress ip = null;
+            if (!resp.addrs.isEmpty()) {
+                if (resp.addrs.size() > 1) {
+                    ip = resp.addrs.get(0).getAddr();
+                    LOG.warn("multiple ips detected, proceeding with:{}", ip);
+                }
+            }
+
+            config = ConfigFactory.load();
+            systemConfig = new SystemConfig(config, ip);
+            gvodConfig = new HostManagerConfig(config, ip);
+
+            timer = create(JavaTimer.class, Init.NONE);
+            trigger(Start.event, timer.control());
+            network = create(NettyNetwork.class, new NettyInit(systemConfig.self));
+            trigger(Start.event, network.control());
+            
+            caracalConnectPhase();
         }
     };
 
@@ -135,11 +174,11 @@ public class DYWSLauncher extends ComponentDefinition {
         currentId = GVoDSerializerSetup.registerSerializers(currentId);
     }
 
-    private void startCaracalProxy() {
-        LOG.info("creating caracal proxy");
+    private void caracalConnectPhase() {
         //TODO Alex should create and start only on open nodes
         caracalProxy = create(CaracalPSManagerComp.class, new CaracalPSManagerComp.CaracalPSManagerInit(gvodConfig.getCaracalPSManagerConfig()));
         connect(caracalProxy.getNegative(Timer.class), timer.getPositive(Timer.class));
+        trigger(Start.event, caracalProxy.control());
 
         subscribe(handleCaracalReady, caracalProxy.getPositive(PeerManagerPort.class));
     }
@@ -148,7 +187,7 @@ public class DYWSLauncher extends ComponentDefinition {
 
         @Override
         public void handle(CaracalReady event) {
-            LOG.info("caracal proxy ready");
+            LOG.info("starting: system");
             connectComponents();
         }
     };
@@ -210,11 +249,16 @@ public class DYWSLauncher extends ComponentDefinition {
     }
 
     public static void main(String[] args) throws IOException {
+        GetIp.NetworkInterfacesMask setIpType = GetIp.NetworkInterfacesMask.PUBLIC;
+        if (args.length == 1 && args[0].equals("-tenDot")) {
+            setIpType = GetIp.NetworkInterfacesMask.TEN_DOT_PRIVATE;
+        }
         if (Kompics.isOn()) {
             Kompics.shutdown();
         }
         MsConfig.init(args);
         System.setProperty("java.net.preferIPv4Stack", "true");
+        DYWSLauncher.setIpType(setIpType);
         Kompics.createAndStart(DYWSLauncher.class, Runtime.getRuntime().availableProcessors(), 20); // Yes 20 is totally arbitrary
         try {
             Kompics.waitForTermination();

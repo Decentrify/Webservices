@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.sics.gvod.system.GVoDLauncher;
 import se.sics.kompics.Kompics;
+import se.sics.ktoolbox.ipsolver.msg.GetIp;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>
@@ -53,6 +54,10 @@ public class GVoDWSLauncher {
     }
 
     public static void main(String[] args) throws IOException {
+        GetIp.NetworkInterfacesMask ipType = GetIp.NetworkInterfacesMask.PUBLIC;
+        if(args.length == 1 && args[0].equals("-tenDot")) {
+            ipType = GetIp.NetworkInterfacesMask.TEN_DOT_PRIVATE;
+        }
         if (Kompics.isOn()) {
             Kompics.shutdown();
         }
@@ -61,6 +66,7 @@ public class GVoDWSLauncher {
         //TODO Alex set future into the launcher gvod
         SettableFuture<GVoDSyncI> gvodSyncI = SettableFuture.create();
         GVoDLauncher.setSyncIFuture(gvodSyncI);
+        GVoDLauncher.setIpType(ipType);
         Kompics.createAndStart(GVoDLauncher.class, Runtime.getRuntime().availableProcessors(), 20); // Yes 20 is totally arbitrary
         
         startWebservice(gvodSyncI);
@@ -71,4 +77,5 @@ public class GVoDWSLauncher {
             System.exit(1);
         }
     }
+    
 }
