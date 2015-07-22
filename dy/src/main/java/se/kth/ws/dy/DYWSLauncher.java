@@ -143,7 +143,7 @@ public class DYWSLauncher extends ComponentDefinition {
 
             InetAddress ip = null;
             if (!resp.addrs.isEmpty()) {
-                if (resp.addrs.size() > 1) {
+                if (resp.addrs.size() > 0) {
                     ip = resp.addrs.get(0).getAddr();
                     LOG.warn("multiple ips detected, proceeding with:{}", ip);
                 }

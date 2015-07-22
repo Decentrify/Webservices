@@ -128,11 +128,11 @@ public class SweepWSLauncher extends ComponentDefinition {
     public Handler handleGetIp = new Handler<GetIp.Resp>() {
         @Override
         public void handle(GetIp.Resp resp) {
-            LOG.info("starting: setting up caracal connection");
+            LOG.info("starting system");
 
             InetAddress ip = null;
             if (!resp.addrs.isEmpty()) {
-                if (resp.addrs.size() > 1) {
+                if (resp.addrs.size() > 0) {
                     ip = resp.addrs.get(0).getAddr();
                     LOG.warn("multiple ips detected, proceeding with:{}", ip);
                 }
@@ -178,11 +178,13 @@ public class SweepWSLauncher extends ComponentDefinition {
                 ElectionConfiguration.build(), chunkManagerConfig, gradientConfig, electionConfig, treeGradientConfig));
         connect(timer.getPositive(Timer.class), sweep.getNegative(Timer.class));
         connect(network.getPositive(Network.class), sweep.getNegative(Network.class));
+        trigger(Start.event, sweep.control());
     }
 
     private void createNConnectSweepSync() {
         sweepSync = create(SweepSyncComponent.class, Init.NONE);
         connect(sweep.getPositive(UiPort.class), sweepSync.getNegative(UiPort.class));
+        trigger(Start.event, sweepSync.control());
     }
 
     private void startWebservice() {
