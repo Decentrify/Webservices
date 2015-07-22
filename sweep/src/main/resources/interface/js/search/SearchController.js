@@ -76,14 +76,14 @@
          */
         self.playResource = function (data) {
 
-            $log.debug('Play Resource called with : ' + data);
+            $log.debug('Play Resource called with : ' + angular.toJson(data));
 
             var json = {
                 name: data["fileName"],
                 overlayId: parseInt(data["url"])
             };
 
-            $log.debug('Reconstructing play call with : ' + json);
+            $log.debug('Reconstructing play call with : ' + angular.toJson(json));
             _updateAndPlay(self.player, self.currentVideoResource, angular.copy(json));
         };
 
@@ -139,15 +139,15 @@
 
                 .success(function (data) {
 
-                    $log.debug("Got the port from gvod: " + data);
+                    $log.debug("Got the port from gvod: " + data.playPort);
 
                     self.currentVideoResource = resource;
-                    var src = _defaultPrefix.concat(gvodService.getServer().ip).concat(":").concat(data).concat('/').concat(name).concat('/').concat(name);
+                    var src = _defaultPrefix.concat(gvodService.getServer().ip).concat(":").concat(data.playPort).concat('/').concat(name).concat('/').concat(name);
 
                     $log.info("Source for the player constructed: " + src);
                     if (player == null) {
                         $log.warn('Player in the scope found as null. Reconstructing it .. ');
-                        player = _initializePlayer($scope.playerName);
+                        player = _initializePlayer(self.playerName);
                     }
 
                     player.src(src);
@@ -187,17 +187,23 @@
         function _search(searchTerm) {
 
             $log.debug("Going to perform search for : " + searchTerm);
-
-            var searchObj = {
-                fileNamePattern: searchTerm,
-                category: 'Video'
+            
+            var searchObj  = {
+                
+                searchPattern :{
+                    fileNamePattern: searchTerm,
+                    category: 'Video'
+                },
+                
+                pagination: null
             };
 
             sweepService.performSearch(searchObj)
 
                 .success(function (data) {
+                    
                     $log.debug('Sweep Service -> Successful');
-                    self.search.result = data;
+                    self.search.result = data.searchResult;
                 })
 
                 .error(function (data) {

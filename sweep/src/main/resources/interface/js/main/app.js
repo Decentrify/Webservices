@@ -46,7 +46,8 @@
                 })
                 .when('/search/:searchText',{
                     templateUrl: 'partials/search/search.html',
-                    controller: 'SearchController'
+                    controller: 'SearchController',
+                    controllerAs: 'searchController'
                 })
                 .otherwise({redirectTo: '/'})
         }])
