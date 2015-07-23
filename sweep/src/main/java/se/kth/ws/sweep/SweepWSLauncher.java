@@ -132,8 +132,8 @@ public class SweepWSLauncher extends ComponentDefinition {
 
             InetAddress ip = null;
             if (!resp.addrs.isEmpty()) {
-                if (resp.addrs.size() > 0) {
-                    ip = resp.addrs.get(0).getAddr();
+                ip = resp.addrs.get(0).getAddr();
+                if (resp.addrs.size() > 1) {
                     LOG.warn("multiple ips detected, proceeding with:{}", ip);
                 }
             }

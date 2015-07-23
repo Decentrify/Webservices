@@ -37,7 +37,6 @@ import se.sics.gvod.config.GradientConfiguration;
 import se.sics.gvod.config.SearchConfiguration;
 import se.sics.gvod.manager.toolbox.GVoDSyncI;
 import se.sics.gvod.network.GVoDSerializerSetup;
-import se.sics.gvod.system.GVoDSystemSerializerSetup;
 import se.sics.gvod.system.HostManagerComp;
 import se.sics.gvod.system.HostManagerConfig;
 import se.sics.kompics.Component;
@@ -143,8 +142,8 @@ public class DYWSLauncher extends ComponentDefinition {
 
             InetAddress ip = null;
             if (!resp.addrs.isEmpty()) {
-                if (resp.addrs.size() > 0) {
-                    ip = resp.addrs.get(0).getAddr();
+                ip = resp.addrs.get(0).getAddr();
+                if (resp.addrs.size() > 1) {
                     LOG.warn("multiple ips detected, proceeding with:{}", ip);
                 }
             }
