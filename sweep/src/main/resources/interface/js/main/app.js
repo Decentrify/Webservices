@@ -4,9 +4,10 @@
     angular.module('app', [
         'ngRoute',
         'nvd3',
-        'ui.bootstrap'
+        'ui.bootstrap',
+        'blockUI'
     ])
-        .config(['$routeProvider','$logProvider', function($routeProvider, $logProvider){
+        .config(['$routeProvider','$logProvider','blockUIConfig', function($routeProvider, $logProvider, blockUIConfig){
 
             $logProvider.debugEnabled(true);
 
@@ -44,12 +45,25 @@
                 .when('/about',{
                     templateUrl: 'partials/others/about-us.html'
                 })
+                .when('/block',{
+                    templateUrl: 'partials/others/block-test.html',
+                    controller: 'BlockController',
+                    controllerAs: 'blockController'
+                })
                 .when('/search/:searchText',{
                     templateUrl: 'partials/search/search.html',
                     controller: 'SearchController',
                     controllerAs: 'searchController'
                 })
-                .otherwise({redirectTo: '/'})
+                .otherwise({redirectTo: '/'});
+
+
+//          Angular BlockUI Configuration.
+            blockUIConfig.message = 'Sweeping ... ';
+            blockUIConfig.delay = 50;
+            blockUIConfig.autoBlock = false;
+
+
         }])
 
         .controller("AlertCtrl", ['$log','$scope','$timeout','AlertService', AlertCtrl])

@@ -214,7 +214,7 @@
         }
 
         /**
-         * Main method of adding the entries in the system. All
+         * Main method of adding/home/babbar/workspace/mediasearch-interface the entries in the system. All
          * the entries needs to be
          */
         $scope.submitIndexEntry = function () {
