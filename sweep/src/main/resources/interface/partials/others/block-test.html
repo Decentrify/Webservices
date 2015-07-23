@@ -6,4 +6,15 @@
         </div>
     </div>
 
+
+    <!-- Pagination needs to be done here.-->
+    <div class="row">
+
+        <div class="content">
+            <h1> Content</h1>
+        </div>
+        <hr/>
+        <pagination ng-change="blockController.pageChanged()" total-items="blockController.paginate.total" max-size="blockController.paginate.pageSize" ng-model="blockController.paginate.currentPage"></pagination>
+    </div>
+
 </div>

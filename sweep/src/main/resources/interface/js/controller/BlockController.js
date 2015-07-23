@@ -19,7 +19,17 @@
                 mainBlock.stop();
 
             }, 2000);
-        }
+        };
 
+
+        self.paginate = {
+            total: 100,
+            pageSize: 10,
+            currentPage: 1
+        };
+
+        self.pageChanged = function(){
+            $log.debug("Call to change the page to : " + self.paginate.currentPage);
+        }
     }
 }());
