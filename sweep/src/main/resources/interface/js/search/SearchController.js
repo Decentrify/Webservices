@@ -121,9 +121,17 @@
 
                 .success(function (data) {
 
+//                  SOME CHECKING NEEDS TO BE DONE HERE.
+
                     $log.debug('Sweep Service -> Successful');
                     $log.debug(angular.toJson(data));
+
                     self.search.result = data.searchResult;
+                    self.paginate.hits = data.pagination.total;
+
+                    $log.debug("Printing Paginate Information ...    ------  ");
+                    $log.debug(self.paginate);
+
                 })
 
                 .error(function (data) {
@@ -138,10 +146,11 @@
          * every page change by the user by
          * pressing the paginate link at the bottom
          * of the page.
+         *
          */
         self.pageChange = function(){
 
-            var from = self.paginate.currentPage;
+            var from = ( self.paginate.currentPage -1 ) * self.paginate.entriesPerPage;
             var size = self.paginate.entriesPerPage;
             var searchText = self.search.searchText;
 

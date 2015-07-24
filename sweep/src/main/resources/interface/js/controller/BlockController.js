@@ -23,7 +23,7 @@
 
 
         self.paginate = {
-            total: 100,
+            total: 12,
             pageSize: 10,
             currentPage: 1
         };

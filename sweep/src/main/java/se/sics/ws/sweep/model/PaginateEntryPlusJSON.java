@@ -19,9 +19,6 @@
 
 package se.sics.ws.sweep.model;
 
-import se.sics.ms.types.IndexEntry;
-
-import java.util.Date;
 import java.util.List;
 
 /**
