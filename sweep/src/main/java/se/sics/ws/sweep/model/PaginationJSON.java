@@ -24,7 +24,7 @@ package se.sics.ws.sweep.model;
  */
 public class PaginationJSON {
     private int from;
-    private int to;
+    private int size;
     private int total;
     
     public PaginationJSON() {}
@@ -37,12 +37,12 @@ public class PaginationJSON {
         this.from = from;
     }
 
-    public int getTo() {
-        return to;
+    public int getSize() {
+        return size;
     }
 
-    public void setTo(int to) {
-        this.to = to;
+    public void setSize(int size) {
+        this.size = size;
     }
 
     public int getTotal() {

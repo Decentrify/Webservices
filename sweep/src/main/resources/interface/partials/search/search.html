@@ -23,6 +23,10 @@
 
         </div>
 
+        <div class="top-buffer">
+            <pagination ng-change="searchController.pageChange()" ng-model="searchController.paginate.currentPage" max-size="searchController.paginate.entriesPerPage" total-items="searchController.paginate.hits"> </pagination>
+        </div>
+
     </div>
 
 </div>
