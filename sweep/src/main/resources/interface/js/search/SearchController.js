@@ -39,7 +39,7 @@
 
         var self = this;
         var _defaultPrefix = "http://";
-
+        var entriesPerPage = 10;
 
         /**
          * Main function that initializes various services
@@ -63,7 +63,7 @@
 
                 hits:0,
                 currentPage:1,
-                entriesPerPage: 10
+                entriesPerPage: entriesPerPage
             };
 
 //          INITIALIZE THE PAGINATE SEARCH.
@@ -258,41 +258,6 @@
             self.player.controls(true);
 
             return self.player;
-        }
-
-
-        /**
-         * Based on the search term provided,
-         * search the sweep for the matching files.
-         *
-         * @param searchTerm Term to search for.
-         * @private
-         */
-        function _search (searchTerm) {
-
-            $log.debug("Going to perform search for : " + searchTerm);
-            
-            var searchObj  = {
-                
-                searchPattern :{
-                    fileNamePattern: searchTerm,
-                    category: 'Video'
-                },
-                
-                pagination: null
-            };
-
-            sweepService.performSearch(searchObj)
-
-                .success(function (data) {
-                    
-                    $log.debug('Sweep Service -> Successful');
-                    self.search.result = data.searchResult;
-                })
-
-                .error(function (data) {
-                    $log.warn('Sweep Service -> Error' + data);
-                })
         }
 
         /**

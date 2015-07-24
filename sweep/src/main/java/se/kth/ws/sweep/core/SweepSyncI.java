@@ -21,10 +21,13 @@ package se.kth.ws.sweep.core;
 
 import com.google.common.util.concurrent.SettableFuture;
 import java.util.ArrayList;
+
+import se.sics.ms.events.paginateAware.UiSearchResponse;
 import se.sics.ms.types.IndexEntry;
 import se.sics.ms.types.SearchPattern;
 import se.kth.ws.sweep.core.util.Result;
 import se.sics.ms.types.ApplicationEntry;
+import se.sics.ws.sweep.model.PaginationJSON;
 
 /**
  * @author Alex Ormenisan <aaor@sics.se>
@@ -39,5 +42,5 @@ import se.sics.ms.types.ApplicationEntry;
 public interface SweepSyncI {
     public boolean isReady();
     public void add(IndexEntry entry, SettableFuture<Result> opFuture);
-    public void search(SearchPattern searchPattern, SettableFuture<Result<ArrayList<ApplicationEntry>>> opFuture);
+    public void search(SearchPattern searchPattern, PaginationJSON paginationJSON, SettableFuture<Result<UiSearchResponse>> opFuture);
 }

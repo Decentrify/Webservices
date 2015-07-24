@@ -39,6 +39,8 @@ import se.sics.ms.ports.UiPort;
 import se.sics.ms.types.ApplicationEntry;
 import se.sics.ms.types.IndexEntry;
 import se.sics.ms.types.SearchPattern;
+import se.sics.ms.util.PaginateInfo;
+import se.sics.ws.sweep.model.PaginationJSON;
 
 /**
  * @author Alex Ormenisan <aaor@sics.se>
@@ -105,7 +107,8 @@ public class SweepSyncComponent extends ComponentDefinition implements SweepSync
     };
 
     @Override
-    public void search(SearchPattern searchPattern, SettableFuture<Result<ArrayList<ApplicationEntry>>> opFuture) {
+    public void search(SearchPattern searchPattern,PaginationJSON paginationJSON, SettableFuture<Result<se.sics.ms.events.paginateAware.UiSearchResponse>> opFuture) {
+
         LOG.info("received search request");
         if(pendingJob != null) {
             LOG.debug("reject - busy");
@@ -113,15 +116,21 @@ public class SweepSyncComponent extends ComponentDefinition implements SweepSync
             return;
         }
         pendingJob = opFuture;
-        trigger(new UiSearchRequest(searchPattern), sweep);
+
+        PaginateInfo paginateInfo = new PaginateInfo(paginationJSON.getFrom(), paginationJSON.getSize());
+        se.sics.ms.events.paginateAware.UiSearchRequest paginateAwareRequest = new se.sics.ms.events.paginateAware.UiSearchRequest(searchPattern, paginateInfo);
+        trigger(paginateAwareRequest, sweep);
     }
-    
-    private Handler handleSearchResponse = new Handler<UiSearchResponse>() {
+
+    private Handler<se.sics.ms.events.paginateAware.UiSearchResponse> handleSearchResponse = new Handler<se.sics.ms.events.paginateAware.UiSearchResponse>() {
         @Override
-        public void handle(UiSearchResponse response) {
+        public void handle(se.sics.ms.events.paginateAware.UiSearchResponse response) {
+
             LOG.debug("received search response");
-            pendingJob.set(Result.ok(response.getResults()));
+            pendingJob.set(Result.ok(response));
             pendingJob = null;
         }
     };
+
+
 }    

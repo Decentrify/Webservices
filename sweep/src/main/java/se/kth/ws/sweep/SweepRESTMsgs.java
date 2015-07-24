@@ -21,6 +21,7 @@ package se.kth.ws.sweep;
 import se.kth.ws.sweep.core.SweepSyncI;
 import com.google.common.util.concurrent.SettableFuture;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
@@ -32,11 +33,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import se.sics.ms.events.paginateAware.UiSearchResponse;
 import se.sics.ms.types.IndexEntry;
 import se.sics.ms.types.SearchPattern;
-import se.sics.ws.sweep.model.AddEntryJSON;
-import se.sics.ws.sweep.model.EntryPlusJSON;
-import se.sics.ws.sweep.model.SearchIndexJSON;
+import se.sics.ms.util.PaginateInfo;
+import se.sics.ws.sweep.model.*;
 import se.kth.ws.sweep.core.util.Result;
 import se.sics.ms.types.ApplicationEntry;
 import se.sics.ws.sweep.util.ResponseStatusWSMapper;
@@ -144,12 +145,12 @@ public class SweepRESTMsgs {
                 return Response.status(ResponseStatusWSMapper.map(parseResult.status)).entity(request.fail(parseResult.getDetails())).build();
             }
 
-            Result<ArrayList<ApplicationEntry>> processResult = process(parseResult.getValue(), sweep);
+            Result<UiSearchResponse> processResult = process(parseResult.getValue(), request.getPagination(), sweep);
             if (!processResult.ok()) {
                 return Response.status(ResponseStatusWSMapper.map(processResult.status)).entity(request.fail(processResult.getDetails())).build();
             }
 
-            Result<ArrayList<EntryPlusJSON>> parseToJSONResult = parseToJSON(processResult.getValue());
+            Result<PaginateEntryPlusJSON> parseToJSONResult = parseToJSONPaginate(processResult.getValue());
             if (!parseToJSONResult.ok()) {
                 return Response.status(ResponseStatusWSMapper.map(parseToJSONResult.status)).entity(request.fail(parseToJSONResult.getDetails())).build();
             }
@@ -170,10 +171,19 @@ public class SweepRESTMsgs {
 
             return Result.ok(searchPattern);
         }
-        
-        private Result<ArrayList<ApplicationEntry>> process(SearchPattern searchPattern, SweepSyncI sweep) {
-            SettableFuture<Result<ArrayList<ApplicationEntry>>> opFuture = SettableFuture.create();
-            sweep.search(searchPattern, opFuture);
+
+        /**
+         * Start processing the search request.
+         *
+         * @param searchPattern pattern of the request
+         * @param paginationJSON json containing pagination information.
+         * @param sweep sync interface
+         *
+         * @return Response
+         */
+        private Result<UiSearchResponse> process( SearchPattern searchPattern, PaginationJSON paginationJSON, SweepSyncI sweep) {
+            SettableFuture<Result<UiSearchResponse>> opFuture = SettableFuture.create();
+            sweep.search(searchPattern, paginationJSON, opFuture);
 
             try {
                 return opFuture.get();
@@ -192,6 +202,25 @@ public class SweepRESTMsgs {
             }
 
             return Result.ok(returnList);
+        }
+
+
+        private Result<PaginateEntryPlusJSON> parseToJSONPaginate(UiSearchResponse searchResponse) {
+
+            ArrayList<EntryPlusJSON> entryList = new ArrayList<EntryPlusJSON>();
+            Collection<ApplicationEntry> resultList = searchResponse.getEntries();
+
+            PaginateInfo paginateInfo = searchResponse.getPaginateInfo();
+            int numHits = searchResponse.getNumHits();
+
+            PaginationJSON paginationJSON = new PaginationJSON(paginateInfo.getFrom(), paginateInfo.getSize(), numHits);
+
+            for (ApplicationEntry ae : resultList) {
+                entryList.add(new EntryPlusJSON(ae.getEntry()));
+            }
+
+            PaginateEntryPlusJSON result = new PaginateEntryPlusJSON(paginationJSON, entryList);
+            return Result.ok(result);
         }
     }
 }
