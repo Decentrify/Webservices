@@ -5,7 +5,7 @@
         .filter('waitingUpload', ['$log', waitingUpload])
         .filter('uploaded', ['$log', uploaded])
         .controller('UploadController', ['$log', '$scope', 'common', 'gvodService', UploadController])
-        .controller('EntryUploadController', ['$log', '$scope', '$q', 'gvodService', 'sweepService', 'AlertService', EntryUploadController]);
+        .controller('EntryUploadController', ['$log', '$scope', '$q', 'gvodService', 'sweepService', 'AlertService','blockUI', EntryUploadController]);
 
 
     /**
@@ -94,8 +94,11 @@
      * @param AlertService
      * @constructor
      */
-    function EntryUploadController($log, $scope, $q, gvodService, sweepService, AlertService) {
+    function EntryUploadController($log, $scope, $q, gvodService, sweepService, AlertService, blockUI) {
 
+
+        // Block UI instances.
+        var uploadBlock = blockUI.instances.get('uploadBlock');
 
         // UTILITY FUNCTION.
         function _reformatData(data) {
@@ -224,6 +227,9 @@
                 var lastSubmitEntry = $scope.data.entry;
                 var uploadObj = {name: lastSubmitEntry.fileName, overlayId: parseInt(lastSubmitEntry.url)};
 
+//              START THE UPLOAD BLOCK.
+                uploadBlock.start();
+
                 gvodService.pendingUpload(uploadObj)
 
                     .then(function (response) {
@@ -271,6 +277,12 @@
                     // Exception Handling.
                     .then(null, function (error) {
                         AlertService.addAlert({type: 'warning', msg: error});
+                    })
+
+                    .finally(function(){
+
+                        $log.debug("Going to stop the upload block ui.");
+                        uploadBlock.stop();
                     })
 
             }
