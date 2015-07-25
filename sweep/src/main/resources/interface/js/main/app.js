@@ -59,7 +59,7 @@
 
 
 //          Angular BlockUI Configuration.
-            blockUIConfig.message = 'Sweeping ... ';
+            blockUIConfig.message = 'Loading ...';
             blockUIConfig.delay = 50;
             blockUIConfig.autoBlock = false;
 

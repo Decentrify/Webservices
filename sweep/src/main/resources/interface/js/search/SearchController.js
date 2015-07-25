@@ -4,7 +4,7 @@
 
     angular.module('app')
 
-        .controller('SearchController', ['$log', '$scope', '$routeParams', 'sweepService', 'gvodService', SearchController])
+        .controller('SearchController', ['$log', '$scope', '$routeParams', 'sweepService', 'gvodService','blockUI', SearchController])
         .directive('searchResult', ['$log', searchResult]);
 
     /**
@@ -24,9 +24,9 @@
 
 
     /**
-     * Main Controller respnsible for handling the search of the
+     * Main Controller responsible for handling the search of the
      * metadata and pagination. In addition to this, it also handles the
-     * video player bootup and dispose protocols.
+     * video player boot up and dispose protocols.
      *
      * @param $log
      * @param $scope
@@ -35,11 +35,12 @@
      * @param gvodService
      * @constructor
      */
-    function SearchController($log, $scope, $routeParams, sweepService, gvodService) {
+    function SearchController($log, $scope, $routeParams, sweepService, gvodService, blockUI) {
 
         var self = this;
         var _defaultPrefix = "http://";
         var entriesPerPage = 10;
+        var searchBlock = blockUI.instances.get('searchBlock');
 
         /**
          * Main function that initializes various services
@@ -114,14 +115,16 @@
 
             };
 
-            $log.debug("Going to perform a paginate search.");
-            $log.debug(angular.toJson(searchObj));
+//          INITIATE THE SEARCH BLOCK UI.
+            searchBlock.start();
 
             sweepService.performSearch(searchObj)
 
-                .success(function (data) {
+                .then(function(response){
 
 //                  SOME CHECKING NEEDS TO BE DONE HERE.
+
+                    var data  = response.data;
 
                     $log.debug('Sweep Service -> Successful');
                     $log.debug(angular.toJson(data));
@@ -132,11 +135,16 @@
                     $log.debug("Printing Paginate Information ...    ------  ");
                     $log.debug(self.paginate);
 
-                })
+                }, function(data){
 
-                .error(function (data) {
                     $log.warn('Sweep Service -> Error' + data);
                 })
+
+                .finally(function(){
+
+                    $log.debug("Time to switch off the block ui.");
+                    searchBlock.stop();
+                });
         }
 
 
