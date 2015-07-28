@@ -18,14 +18,12 @@
  */
 package se.kth.ws.sweep;
 
-import com.google.common.util.concurrent.SettableFuture;
-import com.typesafe.config.Config;
+import se.kth.ws.sweep.core.SweepSyncI;
 import com.yammer.dropwizard.Service;
 import com.yammer.dropwizard.assets.AssetsBundle;
 import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.config.Configuration;
 import com.yammer.dropwizard.config.Environment;
-import java.util.concurrent.ExecutionException;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,10 +35,10 @@ public class SweepWS extends Service<Configuration> {
 
     private static final Logger LOG = LoggerFactory.getLogger(SweepWSLauncher.class);
 
-    private SettableFuture<SweepSyncI> sweepSyncIFuture;
+    private SweepSyncI sweepSyncI;
 
-    public SweepWS(SettableFuture<SweepSyncI> sweepSyncIFuture) {
-        this.sweepSyncIFuture = sweepSyncIFuture;
+    public SweepWS(SweepSyncI sweepSyncI) {
+        this.sweepSyncI = sweepSyncI;
     }
 
     @Override
@@ -50,19 +48,6 @@ public class SweepWS extends Service<Configuration> {
 
     @Override
     public void run(Configuration configuration, Environment environment) throws Exception {
-        SweepSyncI sweepSyncI = null;
-        try {
-            LOG.info("waiting on creation of sweep synchronous interface");
-            sweepSyncI = sweepSyncIFuture.get();
-            LOG.info("sweep synchronous interface created");
-        } catch (InterruptedException ex) {
-            LOG.error("sweep synchronous interface was not instantiated - possible wrong creation order");
-            throw new RuntimeException(ex);
-        } catch (ExecutionException ex) {
-            LOG.error("sweep synchronous interface was not instantiated - possible wrong creation order");
-            throw new RuntimeException(ex);
-        }
-
         environment.addProvider(new SweepRESTMsgs.SearchIndexResource(sweepSyncI));
         environment.addProvider(new SweepRESTMsgs.AddIndexResource(sweepSyncI));
 

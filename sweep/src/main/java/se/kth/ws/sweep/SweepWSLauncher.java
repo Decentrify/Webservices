@@ -18,14 +18,16 @@
  */
 package se.kth.ws.sweep;
 
-import com.google.common.util.concurrent.SettableFuture;
+import se.kth.ws.sweep.core.SweepSyncI;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigException;
 import com.typesafe.config.ConfigFactory;
 import java.io.IOException;
-import java.util.logging.Level;
+import java.net.InetAddress;
+import java.util.EnumSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import se.kth.ws.sweep.core.SweepSyncComponent;
 import se.sics.gvod.config.ElectionConfiguration;
 import se.sics.gvod.config.GradientConfiguration;
 import se.sics.gvod.config.SearchConfiguration;
@@ -34,6 +36,7 @@ import se.sics.kompics.ComponentDefinition;
 import se.sics.kompics.Handler;
 import se.sics.kompics.Init;
 import se.sics.kompics.Kompics;
+import se.sics.kompics.Positive;
 import se.sics.kompics.Start;
 import se.sics.kompics.Stop;
 import se.sics.kompics.network.Network;
@@ -41,9 +44,13 @@ import se.sics.kompics.network.netty.NettyInit;
 import se.sics.kompics.network.netty.NettyNetwork;
 import se.sics.kompics.timer.Timer;
 import se.sics.kompics.timer.java.JavaTimer;
+import se.sics.ktoolbox.ipsolver.IpSolverComp;
+import se.sics.ktoolbox.ipsolver.IpSolverPort;
+import se.sics.ktoolbox.ipsolver.msg.GetIp;
 import se.sics.ms.common.ApplicationSelf;
 import se.sics.ms.configuration.MsConfig;
 import se.sics.ms.net.SerializerSetup;
+import se.sics.ms.ports.UiPort;
 import se.sics.ms.search.SearchPeer;
 import se.sics.ms.search.SearchPeerInit;
 import se.sics.p2ptoolbox.aggregator.network.AggregatorSerializerSetup;
@@ -55,6 +62,7 @@ import se.sics.p2ptoolbox.election.core.ElectionConfig;
 import se.sics.p2ptoolbox.election.network.ElectionSerializerSetup;
 import se.sics.p2ptoolbox.gradient.GradientConfig;
 import se.sics.p2ptoolbox.gradient.GradientSerializerSetup;
+import se.sics.p2ptoolbox.tgradient.TreeGradientConfig;
 import se.sics.p2ptoolbox.util.config.SystemConfig;
 import se.sics.p2ptoolbox.util.serializer.BasicSerializerSetup;
 
@@ -65,20 +73,34 @@ public class SweepWSLauncher extends ComponentDefinition {
 
     private Logger LOG = LoggerFactory.getLogger(SweepWSLauncher.class);
 
+    private static GetIp.NetworkInterfacesMask ipType;
+
+    public static void setIpType(GetIp.NetworkInterfacesMask setIpType) {
+        ipType = setIpType;
+    }
+
+    private Component ipSolver;
     private Component network;
     private Component timer;
-    private Component searchPeer;
+    private Component sweep;
+    private Component sweepSync;
     private SweepWS sweepWS;
     private Config config;
 
     public SweepWSLauncher() {
         LOG.info("initiating...");
+        if (ipType == null) {
+            LOG.error("launcher logic error - ipType not set");
+            throw new RuntimeException("launcher logic error - ipType not set");
+        }
+
         int startId = 128;
         registerSerializers(startId);
-        connectComponents();
 
         subscribe(handleStart, control);
         subscribe(handleStop, control);
+
+        ipSolver = create(IpSolverComp.class, new IpSolverComp.IpSolverInit());
     }
 
     // TODO Abhi - this should be part of sweep and also rename the SerializerSetup to SweepSerializerSetup
@@ -93,40 +115,77 @@ public class SweepWSLauncher extends ComponentDefinition {
         SerializerSetup.registerSerializers(currentId);
     }
 
-    private void connectComponents() {
+    Handler handleStart = new Handler<Start>() {
+        @Override
+        public void handle(Start event) {
+            LOG.info("starting: solving ip...");
+            Positive<IpSolverPort> ipSolverPort = ipSolver.getPositive(IpSolverPort.class);
+            subscribe(handleGetIp, ipSolverPort);
+            trigger(new GetIp.Req(EnumSet.of(ipType)), ipSolverPort);
+        }
+    };
+
+    public Handler handleGetIp = new Handler<GetIp.Resp>() {
+        @Override
+        public void handle(GetIp.Resp resp) {
+            LOG.info("starting system");
+
+            InetAddress ip = null;
+            if (!resp.addrs.isEmpty()) {
+                ip = resp.addrs.get(0).getAddr();
+                if (resp.addrs.size() > 1) {
+                    LOG.warn("multiple ips detected, proceeding with:{}", ip);
+                }
+            }
+            connectComponents(ip);
+        }
+    };
+
+    Handler handleStop = new Handler<Stop>() {
+        @Override
+        public void handle(Stop event) {
+            LOG.info("stopping...");
+        }
+    };
+
+    private void connectComponents(InetAddress ip) {
         config = ConfigFactory.load();
 
-        SystemConfig systemConfig = new SystemConfig(config);
+        SystemConfig systemConfig = new SystemConfig(config, ip);
+
+        timer = create(JavaTimer.class, Init.NONE);
+        trigger(Start.event, timer.control());
+        network = create(NettyNetwork.class, new NettyInit(systemConfig.self));
+        trigger(Start.event, network.control());
+        createNConnectSweep(systemConfig);
+        createNConnectSweepSync();
+        sweepWS = new SweepWS((SweepSyncI) sweepSync.getComponent());
+        startWebservice();
+    }
+
+    private void createNConnectSweep(SystemConfig systemConfig) {
+
         GradientConfig gradientConfig = new GradientConfig(config);
         CroupierConfig croupierConfig = new CroupierConfig(config);
         ElectionConfig electionConfig = new ElectionConfig(config);
         ChunkManagerConfig chunkManagerConfig = new ChunkManagerConfig(config);
-
-        timer = create(JavaTimer.class, Init.NONE);
-        network = create(NettyNetwork.class, new NettyInit(systemConfig.self));
+        TreeGradientConfig treeGradientConfig = new TreeGradientConfig(config);
 
         //TODO Abhi - why aren't you building this applicationSelf in SearchPeer and instead risk me handing this reference to someone else - shared object problem
         ApplicationSelf applicationSelf = new ApplicationSelf(systemConfig.self);
-        //TODO send to searchPeer to populate it so the RestAPI can start
-        //TODO - make sure to set the settable future in the constructor of SearchPeer or else you will might deadlock
-        SettableFuture<SweepSyncI> sweepSyncI = SettableFuture.create();
-        searchPeer = create(SearchPeer.class, new SearchPeerInit(applicationSelf, systemConfig, croupierConfig,
+        sweep = create(SearchPeer.class, new SearchPeerInit(applicationSelf, systemConfig, croupierConfig,
                 SearchConfiguration.build(), GradientConfiguration.build(),
-                ElectionConfiguration.build(), chunkManagerConfig, gradientConfig, electionConfig));
-
-        connect(timer.getPositive(Timer.class), searchPeer.getNegative(Timer.class));
-        connect(network.getPositive(Network.class), searchPeer.getNegative(Network.class));
-
-        sweepWS = new SweepWS(sweepSyncI);
+                ElectionConfiguration.build(), chunkManagerConfig, gradientConfig, electionConfig, treeGradientConfig));
+        connect(timer.getPositive(Timer.class), sweep.getNegative(Timer.class));
+        connect(network.getPositive(Network.class), sweep.getNegative(Network.class));
+        trigger(Start.event, sweep.control());
     }
 
-    Handler handleStart = new Handler<Start>() {
-        @Override
-        public void handle(Start event) {
-            LOG.info("starting...");
-            startWebservice();
-        }
-    };
+    private void createNConnectSweepSync() {
+        sweepSync = create(SweepSyncComponent.class, Init.NONE);
+        connect(sweep.getPositive(UiPort.class), sweepSync.getNegative(UiPort.class));
+        trigger(Start.event, sweepSync.control());
+    }
 
     private void startWebservice() {
         LOG.info("starting webservice");
@@ -143,19 +202,17 @@ public class SweepWSLauncher extends ComponentDefinition {
         }
     }
 
-    Handler handleStop = new Handler<Stop>() {
-        @Override
-        public void handle(Stop event) {
-            LOG.info("stopping...");
-        }
-    };
-    
     public static void main(String[] args) throws IOException {
+        GetIp.NetworkInterfacesMask setIpType = GetIp.NetworkInterfacesMask.PUBLIC;
+        if (args.length == 1 && args[0].equals("-tenDot")) {
+            setIpType = GetIp.NetworkInterfacesMask.TEN_DOT_PRIVATE;
+        }
         if (Kompics.isOn()) {
             Kompics.shutdown();
         }
         MsConfig.init(args);
         System.setProperty("java.net.preferIPv4Stack", "true");
+        SweepWSLauncher.setIpType(setIpType);
         Kompics.createAndStart(SweepWSLauncher.class, Runtime.getRuntime().availableProcessors(), 20); // Yes 20 is totally arbitrary
         try {
             Kompics.waitForTermination();

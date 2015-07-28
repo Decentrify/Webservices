@@ -18,9 +18,11 @@
  */
 package se.kth.ws.sweep;
 
+import se.kth.ws.sweep.core.SweepSyncI;
 import com.google.common.util.concurrent.SettableFuture;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.PUT;
@@ -35,11 +37,12 @@ import se.sics.ms.types.SearchPattern;
 import se.sics.ws.sweep.model.AddEntryJSON;
 import se.sics.ws.sweep.model.EntryPlusJSON;
 import se.sics.ws.sweep.model.SearchIndexJSON;
-import se.sics.ws.sweep.toolbox.Result;
+import se.kth.ws.sweep.core.util.Result;
+import se.sics.ms.types.ApplicationEntry;
 import se.sics.ws.sweep.util.ResponseStatusWSMapper;
 
 /**
- * @author Alex Ormenisan <aaor@sics.se>
+ * @author Alex Ormenisan <aaor@kth.se>
  */
 public class SweepRESTMsgs {
 
@@ -49,9 +52,9 @@ public class SweepRESTMsgs {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public static class AddIndexResource {
-        
+
         private SweepSyncI sweep;
-       
+
         public AddIndexResource(SweepSyncI sweepSyncI) {
             this.sweep = sweepSyncI;
         }
@@ -59,55 +62,26 @@ public class SweepRESTMsgs {
         @PUT
         public Response add(AddEntryJSON.Request request) {
             LOG.info("received AddEntry request for:{}", request.getEntry().getFileName());
-            Result validateRes = ProcessAddEntry.validate(request);
+            if(!sweep.isReady()) {
+                return Response.status(Response.Status.SERVICE_UNAVAILABLE).entity(request.fail("sweep is not ready")).build();
+            }
+            Result validateRes = validateRequest(request);
             if (!validateRes.ok()) {
-                return Response.status(ResponseStatusWSMapper.map(validateRes.status)).entity(request.getResponse(validateRes.getDetails())).build();
+                return Response.status(ResponseStatusWSMapper.map(validateRes.status)).entity(request.fail(validateRes.getDetails())).build();
             }
-            Result<IndexEntry> parseResult = ProcessAddEntry.parseFromJSON(request);
+            Result<IndexEntry> parseResult = parseFromJSON(request);
             if (!parseResult.ok()) {
-                return Response.status(ResponseStatusWSMapper.map(parseResult.status)).entity(request.getResponse(parseResult.getDetails())).build();
-            }
-            Result processResult = ProcessAddEntry.process(parseResult.value.get(), sweep);
-            return Response.status(ResponseStatusWSMapper.map(processResult.status)).entity(request.getResponse(processResult.getDetails())).build();
-        }
-    }
-
-    @Path("/search")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public static class SearchIndexResource {
-        private SweepSyncI sweep;
-       
-        public SearchIndexResource(SweepSyncI sweepSyncI) {
-            this.sweep = sweepSyncI;
-        }
-        
-        @PUT
-        public Response search(SearchIndexJSON.Request request) {
-            LOG.info("received SearchIndex request for:{}", request.getSearchPattern().getFileNamePattern());
-
-            Result<SearchPattern> parseResult = ProcessSearchIndex.parseFromJSON(request);
-            if (!parseResult.ok()) {
-                return Response.status(ResponseStatusWSMapper.map(parseResult.status)).entity(request.getResponse(null, parseResult.getDetails())).build();
-            }
-
-            Result<ArrayList<IndexEntry>> processResult = ProcessSearchIndex.process(parseResult.value.get(), sweep);
-            if (!processResult.ok()) {
-                return Response.status(ResponseStatusWSMapper.map(processResult.status)).entity(request.getResponse(null, processResult.getDetails())).build();
+                return Response.status(ResponseStatusWSMapper.map(parseResult.status)).entity(request.fail(parseResult.getDetails())).build();
             }
             
-            Result<ArrayList<EntryPlusJSON>> parseToJSONResult = ProcessSearchIndex.parseToJSON(processResult.value.get());
-            if (!processResult.ok()) {
-                return Response.status(ResponseStatusWSMapper.map(parseToJSONResult.status)).entity(request.getResponse(null, parseToJSONResult.getDetails())).build();
+            Result processResult = process(parseResult.getValue(), sweep);
+            if(!processResult.ok()) {
+                return Response.status(ResponseStatusWSMapper.map(processResult.status)).entity(request.fail(processResult.getDetails())).build();
             }
-            SearchIndexJSON.Response response = request.getResponse(parseToJSONResult.value.get(), parseToJSONResult.getDetails());
-            return Response.status(ResponseStatusWSMapper.map(parseResult.status)).entity(response).build();
+            return Response.status(Response.Status.OK).entity(request.success()).build();
         }
-    }
 
-    static class ProcessAddEntry {
-
-        public static Result validate(AddEntryJSON.Request request) {
+        private Result validateRequest(AddEntryJSON.Request request) {
             if (request.getEntry().getUrl() == null) {
                 return Result.badRequest("URL is missing");
             } else if ((request.getEntry().getFileName() == null) || (request.getEntry().getFileName().trim().length() == 0)) {
@@ -120,9 +94,10 @@ public class SweepRESTMsgs {
                 return Result.ok(request);
             }
         }
-
-        public static Result<IndexEntry> parseFromJSON(AddEntryJSON.Request request) {
+        
+        private Result<IndexEntry> parseFromJSON(AddEntryJSON.Request request) {
             IndexEntry entry = new IndexEntry(
+                    UUID.randomUUID().toString(),
                     request.getEntry().getUrl(),
                     request.getEntry().getFileName(),
                     request.getEntry().getFileSize(),
@@ -132,9 +107,9 @@ public class SweepRESTMsgs {
                     request.getEntry().getDescription());
             return Result.ok(entry);
         }
-
+        
         public static Result process(IndexEntry entry, SweepSyncI sweep) {
-            SettableFuture<se.sics.ws.sweep.toolbox.Result> opFuture = SettableFuture.create();
+            SettableFuture<Result> opFuture = SettableFuture.create();
             sweep.add(entry, opFuture);
             try {
                 return opFuture.get();
@@ -146,9 +121,43 @@ public class SweepRESTMsgs {
         }
     }
 
-    static class ProcessSearchIndex {
+    @Path("/search")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public static class SearchIndexResource {
 
-        public static Result<SearchPattern> parseFromJSON(SearchIndexJSON.Request request) {
+        private SweepSyncI sweep;
+
+        public SearchIndexResource(SweepSyncI sweepSyncI) {
+            this.sweep = sweepSyncI;
+        }
+
+        @PUT
+        public Response search(SearchIndexJSON.Request request) {
+            LOG.info("received SearchIndex request for:{}", request.getSearchPattern().getFileNamePattern());
+            if(!sweep.isReady()) {
+                return Response.status(Response.Status.SERVICE_UNAVAILABLE).entity(request.fail("sweep is not ready")).build();
+            }
+
+            Result<SearchPattern> parseResult = parseFromJSON(request);
+            if (!parseResult.ok()) {
+                return Response.status(ResponseStatusWSMapper.map(parseResult.status)).entity(request.fail(parseResult.getDetails())).build();
+            }
+
+            Result<ArrayList<ApplicationEntry>> processResult = process(parseResult.getValue(), sweep);
+            if (!processResult.ok()) {
+                return Response.status(ResponseStatusWSMapper.map(processResult.status)).entity(request.fail(processResult.getDetails())).build();
+            }
+
+            Result<ArrayList<EntryPlusJSON>> parseToJSONResult = parseToJSON(processResult.getValue());
+            if (!parseToJSONResult.ok()) {
+                return Response.status(ResponseStatusWSMapper.map(parseToJSONResult.status)).entity(request.fail(parseToJSONResult.getDetails())).build();
+            }
+            SearchIndexJSON.Response response = request.success(parseToJSONResult.getValue());
+            return Response.status(ResponseStatusWSMapper.map(parseResult.status)).entity(response).build();
+        }
+        
+        private Result<SearchPattern> parseFromJSON(SearchIndexJSON.Request request) {
             SearchPattern searchPattern = new SearchPattern(
                     request.getSearchPattern().getFileNamePattern(),
                     request.getSearchPattern().getMinFileSize(),
@@ -161,9 +170,9 @@ public class SweepRESTMsgs {
 
             return Result.ok(searchPattern);
         }
-
-        public static Result<ArrayList<IndexEntry>> process(SearchPattern searchPattern, SweepSyncI sweep) {
-            SettableFuture<Result<ArrayList<IndexEntry>>> opFuture = SettableFuture.create();
+        
+        private Result<ArrayList<ApplicationEntry>> process(SearchPattern searchPattern, SweepSyncI sweep) {
+            SettableFuture<Result<ArrayList<ApplicationEntry>>> opFuture = SettableFuture.create();
             sweep.search(searchPattern, opFuture);
 
             try {
@@ -174,14 +183,14 @@ public class SweepRESTMsgs {
                 return Result.internalError("Request interupted");
             }
         }
-
-        public static Result<ArrayList<EntryPlusJSON>> parseToJSON(ArrayList<IndexEntry> resultList) {
+        
+        private Result<ArrayList<EntryPlusJSON>> parseToJSON(ArrayList<ApplicationEntry> resultList) {
             ArrayList<EntryPlusJSON> returnList = new ArrayList<EntryPlusJSON>();
 
-            for (IndexEntry entry : resultList) {
-                returnList.add(new EntryPlusJSON(entry));
+            for (ApplicationEntry ae : resultList) {
+                returnList.add(new EntryPlusJSON(ae.getEntry()));
             }
-            
+
             return Result.ok(returnList);
         }
     }

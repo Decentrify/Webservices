@@ -8,5 +8,7 @@
   <name>Webservices</name>
   <modules>
     <module>sweep</module>
+    <module>gvod</module>
+   <!-- <module>dy</module> -->
   </modules>
 </project>

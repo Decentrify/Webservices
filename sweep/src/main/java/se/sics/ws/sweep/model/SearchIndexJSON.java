@@ -19,7 +19,6 @@
 package se.sics.ws.sweep.model;
 
 import java.util.ArrayList;
-import java.util.Map;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>
@@ -29,6 +28,7 @@ public class SearchIndexJSON {
     public static class Request {
 
         private SearchPatternJSON searchPattern;
+        private PaginationJSON pagination;
 
         public SearchPatternJSON getSearchPattern() {
             return searchPattern;
@@ -38,8 +38,12 @@ public class SearchIndexJSON {
             this.searchPattern = searchPattern;
         }
 
-        public SearchIndexJSON.Response getResponse(ArrayList<EntryPlusJSON> searchResult, String errorDescription) {
-            return new SearchIndexJSON.Response(searchResult, errorDescription);
+        public Response success(ArrayList<EntryPlusJSON> searchResult) {
+            return new Response(searchResult, "", pagination);
+        }
+        
+        public Response fail(String errorDescription) {
+            return new Response(new ArrayList<EntryPlusJSON>(), errorDescription, pagination);
         }
     }
 
@@ -47,17 +51,41 @@ public class SearchIndexJSON {
 
         private String errorDescription;
         private ArrayList<EntryPlusJSON> searchResult;
+        private PaginationJSON pagination;
         
         public Response() {
         }
 
-        public Response(ArrayList<EntryPlusJSON> result, String errorDescription) {
+        public Response(ArrayList<EntryPlusJSON> result, String errorDescription, PaginationJSON pagination) {
             this.errorDescription = errorDescription;
             this.searchResult = result;
+            this.pagination = pagination;
         }
 
         public String getErrorDescription() {
             return errorDescription;
         }
+
+        public void setErrorDescription(String errorDescription) {
+            this.errorDescription = errorDescription;
+        }
+
+        public ArrayList<EntryPlusJSON> getSearchResult() {
+            return searchResult;
+        }
+
+        public void setSearchResult(ArrayList<EntryPlusJSON> searchResult) {
+            this.searchResult = searchResult;
+        }
+
+        public PaginationJSON getPagination() {
+            return pagination;
+        }
+
+        public void setPagination(PaginationJSON pagination) {
+            this.pagination = pagination;
+        }
+
+        
     }
 }
