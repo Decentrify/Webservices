@@ -254,7 +254,7 @@ public class DYWSLauncher extends ComponentDefinition {
         if (Kompics.isOn()) {
             Kompics.shutdown();
         }
-        MsConfig.init(args);
+//        MsConfig.init(args);
         System.setProperty("java.net.preferIPv4Stack", "true");
         DYWSLauncher.setIpType(setIpType);
         Kompics.createAndStart(DYWSLauncher.class, Runtime.getRuntime().availableProcessors(), 20); // Yes 20 is totally arbitrary

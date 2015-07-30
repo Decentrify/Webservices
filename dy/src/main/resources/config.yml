@@ -1,0 +1,25 @@
+http:
+  port: 19190
+  adminPort: 19191
+  gzip:
+    enabled: false
+
+logging:
+
+  # The default level of all loggers. Can be OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.
+  level: WARN
+
+  # Logger-specific levels.
+  loggers:
+    # Sets the level for 'com.example.app' to DEBUG.
+    "se.sics.gvod.croupier.Croupier": WARN
+    "se.sics.ms.aggregator": WARN
+    "se.sics.p2ptoolbox.croupier.core.Croupier" : WARN
+    
+  console:
+      enabled: true
+
+  file:
+      enabled: true
+      currentLogFilename: "mylog.log"
+      archivedLogFilenamePattern: "mylog-%d{yyyy-mm-dd}.log.gz"
