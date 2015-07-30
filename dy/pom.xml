@@ -196,6 +196,24 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <finalName>dy-ws</finalName>
+                    <archive>
+                        <manifest>
+                            <mainClass>se.kth.ws.dy.DYWSLauncher</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+
+
+
         </plugins>
     </build>
 </project>
