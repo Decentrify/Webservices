@@ -28,7 +28,6 @@ import java.util.EnumSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.kth.ws.sweep.core.SweepSyncComponent;
-import se.sics.gvod.config.ElectionConfiguration;
 import se.sics.gvod.config.GradientConfiguration;
 import se.sics.gvod.config.SearchConfiguration;
 import se.sics.kompics.Component;
@@ -175,7 +174,7 @@ public class SweepWSLauncher extends ComponentDefinition {
         ApplicationSelf applicationSelf = new ApplicationSelf(systemConfig.self);
         sweep = create(SearchPeer.class, new SearchPeerInit(applicationSelf, systemConfig, croupierConfig,
                 SearchConfiguration.build(), GradientConfiguration.build(),
-                ElectionConfiguration.build(), chunkManagerConfig, gradientConfig, electionConfig, treeGradientConfig));
+                chunkManagerConfig, gradientConfig, electionConfig, treeGradientConfig));
         connect(timer.getPositive(Timer.class), sweep.getNegative(Timer.class));
         connect(network.getPositive(Network.class), sweep.getNegative(Network.class));
         trigger(Start.event, sweep.control());

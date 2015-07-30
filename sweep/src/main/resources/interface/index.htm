@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="css/nvd3/nvd3.css"/>
     <link href='http://fonts.googleapis.com/css?family=Dosis|Lobster' rel='stylesheet' type='text/css'>
     <link href="css/videojs/video-js.css" rel="stylesheet">
+    <link href="components/angular-block-ui/dist/angular-block-ui.css" rel="stylesheet">
 </head>
 
 <body>
@@ -52,6 +53,7 @@
                 <ul class="dropdown-menu" role="menu">
                     <li><a href ng-click="headerController.routeTo('/about')">About Us</a></li>
                     <!--<li><a href ng-click="routeTo('/video')">Video Test</a></li>-->
+                    <li><a href="#/block">Block UI Test</a></li>
                 </ul>
             </li>
         </ul>
@@ -78,7 +80,9 @@
 <script src="components/angular-nvd3/angular-nvd3.js"></script>
 <script type="text/javascript" src="components/angular-bootstrap/ui-bootstrap.min.js"></script>
 <script type="text/javascript" src="components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
+<script type="text/javascript" src="components/angular-block-ui/dist/angular-block-ui.js"></script>
 <script src="js/main/app.js"></script>
+<script src="js/controller/BlockController.js"></script>
 <script src="js/controller/BoardHeaderController.js"></script>
 <script src="js/controller/LandingController.js"></script>
 <script src="js/uploader/UploadController.js"></script>

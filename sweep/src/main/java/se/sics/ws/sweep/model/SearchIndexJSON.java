@@ -19,6 +19,7 @@
 package se.sics.ws.sweep.model;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>
@@ -38,8 +39,17 @@ public class SearchIndexJSON {
             this.searchPattern = searchPattern;
         }
 
-        public Response success(ArrayList<EntryPlusJSON> searchResult) {
-            return new Response(searchResult, "", pagination);
+
+        public PaginationJSON getPagination() {
+            return pagination;
+        }
+
+        public void setPagination(PaginationJSON pagination) {
+            this.pagination = pagination;
+        }
+
+        public Response success(PaginateEntryPlusJSON searchResult) {
+            return new Response(searchResult.getEntries(), "", searchResult.getPaginationJSON());
         }
         
         public Response fail(String errorDescription) {
@@ -50,13 +60,13 @@ public class SearchIndexJSON {
     public static class Response {
 
         private String errorDescription;
-        private ArrayList<EntryPlusJSON> searchResult;
+        private List<EntryPlusJSON> searchResult;
         private PaginationJSON pagination;
         
         public Response() {
         }
 
-        public Response(ArrayList<EntryPlusJSON> result, String errorDescription, PaginationJSON pagination) {
+        public Response(List<EntryPlusJSON> result, String errorDescription, PaginationJSON pagination) {
             this.errorDescription = errorDescription;
             this.searchResult = result;
             this.pagination = pagination;
@@ -70,7 +80,7 @@ public class SearchIndexJSON {
             this.errorDescription = errorDescription;
         }
 
-        public ArrayList<EntryPlusJSON> getSearchResult() {
+        public List<EntryPlusJSON> getSearchResult() {
             return searchResult;
         }
 

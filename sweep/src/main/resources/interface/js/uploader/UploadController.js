@@ -5,7 +5,7 @@
         .filter('waitingUpload', ['$log', waitingUpload])
         .filter('uploaded', ['$log', uploaded])
         .controller('UploadController', ['$log', '$scope', 'common', 'gvodService', UploadController])
-        .controller('EntryUploadController', ['$log', '$scope', '$q', 'gvodService', 'sweepService', 'AlertService', EntryUploadController]);
+        .controller('EntryUploadController', ['$log', '$scope', '$q', 'gvodService', 'sweepService', 'AlertService','blockUI', EntryUploadController]);
 
 
     /**
@@ -93,9 +93,13 @@
      * @param sweepService
      * @param AlertService
      * @constructor
+     * @param blockUI
      */
-    function EntryUploadController($log, $scope, $q, gvodService, sweepService, AlertService) {
+    function EntryUploadController($log, $scope, $q, gvodService, sweepService, AlertService, blockUI) {
 
+
+        // Block UI instances.
+        var uploadBlock = blockUI.instances.get('uploadBlock');
 
         // UTILITY FUNCTION.
         function _reformatData(data) {
@@ -128,6 +132,8 @@
 
         function _initializeLibrary() {
 
+            $log.debug("Call to initialize the libraries... ");
+
             gvodService.fetchFiles()
 
                 .success(function (data) {
@@ -155,7 +161,7 @@
             data.fileName = null;
             data.url = undefined;
             data.description = undefined;
-            _resetFormStatus();
+            _initializeLibrary();
         }
 
         /**
@@ -165,6 +171,9 @@
          * @private
          */
         function _resetFormStatus() {
+            $log.debug("Resetting the form status ... ");
+
+            $log.debug($scope.entryAdditionForm);
             $scope.entryAdditionForm.$setPristine();
         }
 
@@ -215,7 +224,8 @@
 
         /**
          * Main method of adding the entries in the system. All
-         * the entries needs to be
+         * the entries needs to be added in a specific order by informing various components.
+         *
          */
         $scope.submitIndexEntry = function () {
 
@@ -223,6 +233,11 @@
 
                 var lastSubmitEntry = $scope.data.entry;
                 var uploadObj = {name: lastSubmitEntry.fileName, overlayId: parseInt(lastSubmitEntry.url)};
+
+//              START THE UPLOAD BLOCK.
+                uploadBlock.start();
+
+                var formInstance = this.entryAdditionForm;
 
                 gvodService.pendingUpload(uploadObj)
 
@@ -257,8 +272,9 @@
 
                         $log.debug("Index Upload Successful");
 
-                        _houseKeeping($scope.data.entry);
-                        _initializeLibrary();
+//                      PERFORM HOUSEKEEPING AND CLEANING STATE.
+                        formInstance.$setPristine();    // RESET THE FORM TO ITS FORMER STATE.
+                        _houseKeeping($scope.data.entry);   // HOUSEKEEPING.
 
                         AlertService.addAlert({type: 'success', msg: 'Upload Successful.'});
                     },
@@ -273,6 +289,18 @@
                         AlertService.addAlert({type: 'warning', msg: error});
                     })
 
+                    .finally(function(){
+
+                        $log.debug("Going to stop the upload block ui.");
+                        uploadBlock.stop();
+
+
+                    })
+
+            }
+
+            else{
+                $log.warn("Form not valid for submission ... ");
             }
         };
 

@@ -32,7 +32,6 @@ import se.kth.ws.sweep.core.SweepSyncComponent;
 import se.sics.gvod.bootstrap.cclient.CaracalPSManagerComp;
 import se.sics.gvod.bootstrap.server.peermanager.PeerManagerPort;
 import se.sics.gvod.bootstrap.server.peermanager.msg.CaracalReady;
-import se.sics.gvod.config.ElectionConfiguration;
 import se.sics.gvod.config.GradientConfiguration;
 import se.sics.gvod.config.SearchConfiguration;
 import se.sics.gvod.manager.toolbox.GVoDSyncI;
@@ -209,7 +208,7 @@ public class DYWSLauncher extends ComponentDefinition {
         ApplicationSelf applicationSelf = new ApplicationSelf(systemConfig.self);
         sweep = create(SearchPeer.class, new SearchPeerInit(applicationSelf, systemConfig, croupierConfig,
                 SearchConfiguration.build(), GradientConfiguration.build(),
-                ElectionConfiguration.build(), chunkManagerConfig, gradientConfig, electionConfig, treeGradientConfig));
+                chunkManagerConfig, gradientConfig, electionConfig, treeGradientConfig));
         connect(timer.getPositive(Timer.class), sweep.getNegative(Timer.class));
         connect(network.getPositive(Network.class), sweep.getNegative(Network.class));
 

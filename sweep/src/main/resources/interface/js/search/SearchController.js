@@ -4,7 +4,7 @@
 
     angular.module('app')
 
-        .controller('SearchController', ['$log', '$scope', '$routeParams', 'sweepService', 'gvodService', SearchController])
+        .controller('SearchController', ['$log', '$scope', '$routeParams', 'sweepService', 'gvodService','blockUI', SearchController])
         .directive('searchResult', ['$log', searchResult]);
 
     /**
@@ -24,9 +24,9 @@
 
 
     /**
-     * Main Controller respnsible for handling the search of the
+     * Main Controller responsible for handling the search of the
      * metadata and pagination. In addition to this, it also handles the
-     * video player bootup and dispose protocols.
+     * video player boot up and dispose protocols.
      *
      * @param $log
      * @param $scope
@@ -35,40 +35,141 @@
      * @param gvodService
      * @constructor
      */
-    function SearchController($log, $scope, $routeParams, sweepService, gvodService) {
+    function SearchController($log, $scope, $routeParams, sweepService, gvodService, blockUI) {
 
         var self = this;
         var _defaultPrefix = "http://";
+        var entriesPerPage = 10;
+        var searchBlock = blockUI.instances.get('searchBlock');
 
         /**
-         * Initialization of the scope.
-         * @param scope
+         * Main function that initializes various services
+         * over the page including the pagination and the video
+         * player service.
+         *
+         * @param self
+         * @private
          */
+        function _initialize(self){
 
-        self.search = {};
-        self.search.searchText = $routeParams.searchText;
-        self.playerName = 'main_player';
+            self.search = {};
+            self.search.searchText = $routeParams.searchText;
+            self.playerName = 'main_player';
 
-        // Initialize Resources.
-        _search(self.search.searchText);
+            /**
+             * Pagination information.
+             * @type {{hits: number, currentPage: number, entriesPerPage: number}}
+             */
+            self.paginate = {
 
-        //scope.search.result = _getDummyResults();
+                hits:0,
+                currentPage:1,
+                entriesPerPage: entriesPerPage
+            };
 
-        // Initialize Player.
-        _initializePlayer(self.playerName);
+//          INITIALIZE THE PAGINATE SEARCH.
+            _paginateSearch( 0, self.paginate.entriesPerPage, self.search.searchText);
 
-        // Destroy Player Call Back.
-        $scope.$on('$destroy', function () {
+//          INITIALIZE THE PLAYER.
+            _initializePlayer(self.playerName);
 
-            $log.info('Destroy the video player instance.');
-            if (self.player != null) {
+//          DESTROY PLAYER ON PAGE SWITCH.
+            $scope.$on('$destroy', function () {
 
-                self.player.dispose();
-                if (self.currentVideoResource != null) {
-                    gvodService.stop(self.currentVideoResource);
+                $log.info('Destroy the video player instance.');
+                if (self.player != null) {
+
+                    self.player.dispose();
+                    if (self.currentVideoResource != null) {
+                        gvodService.stop(self.currentVideoResource);
+                    }
                 }
-            }
-        });
+            });
+
+        }
+
+
+        /**
+         * Main search function performing the paginate search
+         * . The information is passed to the function based on the
+         *
+         * @param from
+         * @param size
+         * @param searchText
+         * @private
+         */
+        function _paginateSearch ( from , size,  searchText) {
+
+            var searchObj  = {
+
+                searchPattern :{
+                    fileNamePattern: searchText,
+                    category: 'Video'
+                },
+
+                pagination: {
+                    from: from,
+                    size: size,
+                    total: 0
+                }
+
+            };
+
+//          INITIATE THE SEARCH BLOCK UI.
+            searchBlock.start();
+
+            sweepService.performSearch(searchObj)
+
+                .then(function(response){
+
+//                  SOME CHECKING NEEDS TO BE DONE HERE.
+
+                    var data  = response.data;
+
+                    $log.debug('Sweep Service -> Successful');
+                    $log.debug(angular.toJson(data));
+
+                    self.search.result = data.searchResult;
+                    self.paginate.hits = data.pagination.total;
+
+                    $log.debug("Printing Paginate Information ...    ------  ");
+                    $log.debug(self.paginate);
+
+                }, function(data){
+
+                    $log.warn('Sweep Service -> Error' + data);
+                })
+
+                .finally(function(){
+
+                    $log.debug("Time to switch off the block ui.");
+                    searchBlock.stop();
+                });
+        }
+
+
+
+        /**
+         * Main function to be invoked on
+         * every page change by the user by
+         * pressing the paginate link at the bottom
+         * of the page.
+         *
+         */
+        self.pageChange = function(){
+
+            var from = ( self.paginate.currentPage -1 ) * self.paginate.entriesPerPage;
+            var size = self.paginate.entriesPerPage;
+            var searchText = self.search.searchText;
+
+            $log.debug("page change function invoked.");
+            $log.debug("From: " + from + " Size: " + size + " Search Text: " + searchText);
+
+            _paginateSearch(from, size, searchText);
+        };
+
+
+
 
         /**
          * Play the provided video resource.
@@ -176,41 +277,11 @@
             return self.player;
         }
 
-
         /**
-         * Based on the search term provided,
-         * search the sweep for the matching files.
          *
-         * @param searchTerm Term to search for.
-         * @private
+         * Initialize the parameters
+         * to be used as part of search.
          */
-        function _search(searchTerm) {
-
-            $log.debug("Going to perform search for : " + searchTerm);
-            
-            var searchObj  = {
-                
-                searchPattern :{
-                    fileNamePattern: searchTerm,
-                    category: 'Video'
-                },
-                
-                pagination: null
-            };
-
-            sweepService.performSearch(searchObj)
-
-                .success(function (data) {
-                    
-                    $log.debug('Sweep Service -> Successful');
-                    self.search.result = data.searchResult;
-                })
-
-                .error(function (data) {
-                    $log.warn('Sweep Service -> Error' + data);
-                })
-        }
-
-
+        _initialize(self);
     }
 }());
