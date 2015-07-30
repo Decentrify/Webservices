@@ -209,7 +209,7 @@ public class SweepWSLauncher extends ComponentDefinition {
         if (Kompics.isOn()) {
             Kompics.shutdown();
         }
-        MsConfig.init(args);
+//        MsConfig.init(args);
         System.setProperty("java.net.preferIPv4Stack", "true");
         SweepWSLauncher.setIpType(setIpType);
         Kompics.createAndStart(SweepWSLauncher.class, Runtime.getRuntime().availableProcessors(), 20); // Yes 20 is totally arbitrary
