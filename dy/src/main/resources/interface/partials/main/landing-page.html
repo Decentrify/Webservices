@@ -1,0 +1,116 @@
+<div>
+    
+    <div class="container">
+
+        <div class="row search-image">
+            <h1 style="color: white; letter-spacing: 2px; text-align: center">Search In The Clouds</h1>
+        </div>
+
+        <div class="row">
+            <h1 class="well text-center">Soup To Bits</h1>
+        </div>
+
+        <!--<div class="row network-image">-->
+            <!--<h1 style="color: white; letter-spacing: 2px; text-align: center">Fully Decentralized System</h1>-->
+            <!--<h3 style="color: white; text-align: center" >No Central Point of Failure.</h3>-->
+        <!--</div>-->
+
+        <!--<div class="row">-->
+
+            <!--<div class="col-sm-3 well">-->
+                <!--<label>What is this hype about ?</label>-->
+            <!--</div>-->
+
+            <!--<div class="col-sm-4 col-sm-offset-1 well">-->
+                <!--<label>Why is it good ?</label>-->
+            <!--</div>-->
+
+            <!--<div class="col-sm-3 col-sm-offset-1 well" >-->
+                <!--<label>On Going Work ?</label>-->
+            <!--</div>-->
+
+        <!--</div>-->
+
+
+        <div class="row top-buffer">
+
+            <h2 class="text-center">How Sweep Works <i class="glyphicon glyphicon-question-sign"></i></h2>
+            <p class="text-justify" style="font-size: 18px"><span class="specialFont">Sweep</span>, is a fully decentralized search engine. Therefore there is no single point of failure.
+                The system builds on top of <b>Croupier</b> which is a peer sampling service. This service helps to bootup and maintain the overlay network.
+                Its a push - pull protocol in which the nodes randomly select a node from there view and shuffles information with it. In return, the node also receives
+                information from the other node. <br>
+                This sampling service feeds the its view in the <b>Gradient</b> service which constructs its own view based on the user defined utility. <b>Sweep</b> uses this
+                service to identify the favourable nodes to pull the system's current state information. The utility of the node is used to select Leader for the partition
+                (More on that later). <br>
+                The user adds entries in the system which could be any data that user wants to make searchable. Based on the system from which the user initiates the upload
+                request, it locates the leader of the partition and through it the entry gets added. In addition to this, nodes run there continuous pull mechanism to ask for any updated
+                information from the nodes having high utility as compared to own. This helps in disseminating the information among the nodes in the partition.
+                <br><br>
+                Looks easy right ? Believe me its not. There's ton of stuff which is going inside the partition which helps to maintain the sanity of the information, which will be discussed later.
+            </p>
+
+        </div>
+        
+
+        <div class="row top-buffer">
+            
+            <div class="col-sm-3">
+                <h2>Scalability</h2>
+                <p class="text-justify" style="font-size: 17px">The application can easily be scaled up by adding new nodes in the system. The service responsible for the maintaining the overlay,
+                    detects the new nodes through an external bootstrap and starts incorporating them in the system. The current state information is then 
+                    being pulled by these nodes from the already present nodes, thus bringing them up to date with others. <br>
+                    &nbsp; &nbsp; &nbsp;  In this way the system becomes highly scalable, only infinity is the limit ...
+                </p>
+            </div>
+            
+            <div class="col-sm-8 col-sm-offset-1 infinity-image">
+                <h3 style="color: white; letter-spacing: 2px; text-align: center">In words of Buzz LightYear ...</h3>
+            </div>
+            
+        </div>
+
+        <hr/>
+        
+        <div class="row top-buffer">
+            
+            <div class="col-sm-6 availabilty-image">
+            </div>
+            
+            <div class="col-sm-5 col-sm-offset-1">
+                <h2>Availability</h2>
+                <p style="font-size: 17px" class="text-justify">In previous section, we mentioned that all the entry additions are done through leader of partition. Although it looks like single point of failure
+                    but the leader before committing the entry does a <b>quorum</b> write. It asks all the nodes its gradient if they are ready to add another entry and if majority of them 
+                    replies with yes, then the leaders again sends out a message to all of them to commit the entry. In this way the leader ensures that the information gets replicated.
+                    Now we may ask what happens when the leader dies ? <br>
+                    
+                    Well to understand that a little information regarding the leader election is required. All the nodes look into there view and see if they have a node which is of <b>higher
+                    utility</b> than it. Only the leader would see the absence of any higher utility node. It then tries to assert itself as leader and if selected declares itself as leader and continuously
+                    sends heartbeat to the neighbouring nodes. In absence of these heartbeats the nodes contact each other about the posibilty of death of leader and if decided that the leader is dead, the next best 
+                    node tries to assert itself as leader.
+                    
+                </p>
+            </div>
+            
+            
+        </div>
+        
+
+        <!--<div class="row top-buffer">-->
+            <!--<div class="col-sm-6">-->
+                <!--<h1> Statistics section</h1>-->
+                <!--<p>We are currently working on to improve the mechanism to generate more statistics, which would help to visualize the system in a better way.</p>-->
+            <!--</div>-->
+
+            <!--<div class="col-sm-3 col-sm-offset-3 statistics-image">-->
+            <!--</div>-->
+        <!--</div>-->
+    </div>
+
+    
+    
+    <div class="container top-buffer">
+        <label> This is out footer</label>
+    </div>
+    
+</div>
+        
