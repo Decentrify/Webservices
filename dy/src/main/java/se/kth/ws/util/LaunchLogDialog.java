@@ -5,6 +5,8 @@
  */
 package se.kth.ws.util;
 
+import se.kth.ws.dy.DYWS;
+
 import javax.swing.*;
 import javax.swing.text.BadLocationException;
 import java.awt.*;
@@ -42,7 +44,7 @@ public class LaunchLogDialog extends javax.swing.JDialog {
    * @param image icon
    */
   public LaunchLogDialog(java.awt.Frame parent, int port, Image image) {
-    super(parent, "Karamel", false);
+    super(parent, "Decentrify", false);
     this.port = port;
     this.image = image;
     initComponents();
@@ -58,7 +60,7 @@ public class LaunchLogDialog extends javax.swing.JDialog {
       }
     });
 
-    printStream = new PrintStream(new CustomOutputStream(jTextAreaKaramelStdOut));
+    printStream = new PrintStream(new CustomOutputStream(jTextAreaDecentrifyStdOut));
     System.setOut(printStream);
     System.setErr(printStream);
 
@@ -81,8 +83,8 @@ public class LaunchLogDialog extends javax.swing.JDialog {
 
         launchButton = new javax.swing.JButton();
         closelButton = new javax.swing.JButton();
-        jScrollPaneKaramelStdOut = new javax.swing.JScrollPane();
-        jTextAreaKaramelStdOut = new javax.swing.JTextArea();
+        jScrollPaneDecentrifyStdOut = new javax.swing.JScrollPane();
+        jTextAreaDecentrifyStdOut = new javax.swing.JTextArea();
         clearButton = new javax.swing.JButton();
         jButton1 = new javax.swing.JButton();
 
@@ -116,22 +118,22 @@ public class LaunchLogDialog extends javax.swing.JDialog {
             }
         });
 
-        jScrollPaneKaramelStdOut.setDoubleBuffered(true);
+        jScrollPaneDecentrifyStdOut.setDoubleBuffered(true);
 
-        jTextAreaKaramelStdOut.setEditable(false);
-        jTextAreaKaramelStdOut.setBackground(new java.awt.Color(4, 4, 4));
-        jTextAreaKaramelStdOut.setColumns(20);
-        jTextAreaKaramelStdOut.setFont(new java.awt.Font("Courier", 0, 14)); // NOI18N
-        jTextAreaKaramelStdOut.setForeground(new java.awt.Color(250, 250, 250));
-        jTextAreaKaramelStdOut.setLineWrap(true);
-        jTextAreaKaramelStdOut.setRows(15);
-        jTextAreaKaramelStdOut.setTabSize(4);
-        jTextAreaKaramelStdOut.setText(" __                                                             __        __                     \n/  |                                                           /  |      /  |                    \n$$ |   __   ______    ______   ______   _____  ____    ______  $$ |      $$ |  ______    ______  \n$$ |  /  | /      \\  /      \\ /      \\ /     \\/    \\  /      \\ $$ |      $$ | /      \\  /      \\ \n$$ |_/$$/  $$$$$$  |/$$$$$$  |$$$$$$  |$$$$$$ $$$$  |/$$$$$$  |$$ |      $$ |/$$$$$$  |/$$$$$$  |\n$$   $$<   /    $$ |$$ |  $$/ /    $$ |$$ | $$ | $$ |$$    $$ |$$ |      $$ |$$ |  $$ |$$ |  $$ |\n$$$$$$  \\ /$$$$$$$ |$$ |     /$$$$$$$ |$$ | $$ | $$ |$$$$$$$$/ $$ |      $$ |$$ \\__$$ |$$ \\__$$ |\n$$ | $$  |$$    $$ |$$ |     $$    $$ |$$ | $$ | $$ |$$       |$$ |      $$ |$$    $$/ $$    $$ |\n$$/   $$/  $$$$$$$/ $$/       $$$$$$$/ $$/  $$/  $$/  $$$$$$$/ $$/       $$/  $$$$$$/   $$$$$$$ |\n                                                                                       /  \\__$$ |\n                                                                                       $$    $$/ \n                                                                                        $$$$$$/  ");
-        jTextAreaKaramelStdOut.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(186, 242, 247)));
-        jTextAreaKaramelStdOut.setCaretColor(new java.awt.Color(254, 254, 254));
-        jTextAreaKaramelStdOut.setDisabledTextColor(new java.awt.Color(241, 240, 238));
-        jTextAreaKaramelStdOut.setSelectedTextColor(new java.awt.Color(252, 251, 38));
-        jScrollPaneKaramelStdOut.setViewportView(jTextAreaKaramelStdOut);
+        jTextAreaDecentrifyStdOut.setEditable(false);
+        jTextAreaDecentrifyStdOut.setBackground(new java.awt.Color(4, 4, 4));
+        jTextAreaDecentrifyStdOut.setColumns(20);
+        jTextAreaDecentrifyStdOut.setFont(new java.awt.Font("Courier", 0, 14)); // NOI18N
+        jTextAreaDecentrifyStdOut.setForeground(new java.awt.Color(250, 250, 250));
+        jTextAreaDecentrifyStdOut.setLineWrap(true);
+        jTextAreaDecentrifyStdOut.setRows(15);
+        jTextAreaDecentrifyStdOut.setTabSize(4);
+        jTextAreaDecentrifyStdOut.setText(" __                                                             __        __                     \n/  |                                                           /  |      /  |                    \n$$ |   __   ______    ______   ______   _____  ____    ______  $$ |      $$ |  ______    ______  \n$$ |  /  | /      \\  /      \\ /      \\ /     \\/    \\  /      \\ $$ |      $$ | /      \\  /      \\ \n$$ |_/$$/  $$$$$$  |/$$$$$$  |$$$$$$  |$$$$$$ $$$$  |/$$$$$$  |$$ |      $$ |/$$$$$$  |/$$$$$$  |\n$$   $$<   /    $$ |$$ |  $$/ /    $$ |$$ | $$ | $$ |$$    $$ |$$ |      $$ |$$ |  $$ |$$ |  $$ |\n$$$$$$  \\ /$$$$$$$ |$$ |     /$$$$$$$ |$$ | $$ | $$ |$$$$$$$$/ $$ |      $$ |$$ \\__$$ |$$ \\__$$ |\n$$ | $$  |$$    $$ |$$ |     $$    $$ |$$ | $$ | $$ |$$       |$$ |      $$ |$$    $$/ $$    $$ |\n$$/   $$/  $$$$$$$/ $$/       $$$$$$$/ $$/  $$/  $$/  $$$$$$$/ $$/       $$/  $$$$$$/   $$$$$$$ |\n                                                                                       /  \\__$$ |\n                                                                                       $$    $$/ \n                                                                                        $$$$$$/  ");
+        jTextAreaDecentrifyStdOut.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(186, 242, 247)));
+        jTextAreaDecentrifyStdOut.setCaretColor(new java.awt.Color(254, 254, 254));
+        jTextAreaDecentrifyStdOut.setDisabledTextColor(new java.awt.Color(241, 240, 238));
+        jTextAreaDecentrifyStdOut.setSelectedTextColor(new java.awt.Color(252, 251, 38));
+        jScrollPaneDecentrifyStdOut.setViewportView(jTextAreaDecentrifyStdOut);
 
         clearButton.setFont(new java.awt.Font("Arial", 0, 18)); // NOI18N
         clearButton.setText("Clear Screen");
@@ -168,14 +170,14 @@ public class LaunchLogDialog extends javax.swing.JDialog {
                         .addComponent(clearButton, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
                         .addComponent(closelButton, javax.swing.GroupLayout.PREFERRED_SIZE, 155, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jScrollPaneKaramelStdOut, javax.swing.GroupLayout.DEFAULT_SIZE, 853, Short.MAX_VALUE))
+                    .addComponent(jScrollPaneDecentrifyStdOut, javax.swing.GroupLayout.DEFAULT_SIZE, 853, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPaneKaramelStdOut, javax.swing.GroupLayout.DEFAULT_SIZE, 483, Short.MAX_VALUE)
+                .addComponent(jScrollPaneDecentrifyStdOut, javax.swing.GroupLayout.DEFAULT_SIZE, 483, Short.MAX_VALUE)
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(closelButton, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -192,11 +194,11 @@ public class LaunchLogDialog extends javax.swing.JDialog {
 
     private void launchButtonActionPerformed(ActionEvent evt) {
 
-//      try {
-////        KaramelServiceApplication.openWebpage(new URL("http://localhost:" + this.port + "/index.html"));
-//      } catch (MalformedURLException ex) {
-//        Logger.getLogger(LaunchLogDialog.class.getName()).log(Level.SEVERE, null, ex);
-//      }
+      try {
+          DYWS.openWebpage(new URL("http://localhost:" + this.port + "/webapp/"));
+      } catch (MalformedURLException ex) {
+        Logger.getLogger(LaunchLogDialog.class.getName()).log(Level.SEVERE, null, ex);
+      }
 
     }
 
@@ -214,7 +216,7 @@ public class LaunchLogDialog extends javax.swing.JDialog {
     private void clearButtonActionPerformed(ActionEvent evt) {//GEN-FIRST:event_clearButtonActionPerformed
 
       try {
-        jTextAreaKaramelStdOut.getDocument().remove(0, jTextAreaKaramelStdOut.getDocument().getLength());
+        jTextAreaDecentrifyStdOut.getDocument().remove(0, jTextAreaDecentrifyStdOut.getDocument().getLength());
       } catch (BadLocationException ex) {
         Logger.getLogger(LaunchLogDialog.class.getName()).log(Level.SEVERE, null, ex);
       }
@@ -238,8 +240,8 @@ public class LaunchLogDialog extends javax.swing.JDialog {
     private javax.swing.JButton clearButton;
     private javax.swing.JButton closelButton;
     private javax.swing.JButton jButton1;
-    private javax.swing.JScrollPane jScrollPaneKaramelStdOut;
-    private javax.swing.JTextArea jTextAreaKaramelStdOut;
+    private javax.swing.JScrollPane jScrollPaneDecentrifyStdOut;
+    private javax.swing.JTextArea jTextAreaDecentrifyStdOut;
     private javax.swing.JButton launchButton;
     // End of variables declaration//GEN-END:variables
 
