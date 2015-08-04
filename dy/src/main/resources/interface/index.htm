@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html ng-app="app">
+
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Sweep</title>
+    <link rel="stylesheet" href="css/bootstrap/bootstrap.css"/>
+    <link rel="stylesheet" href="css/main.css"/>
+    <link rel="stylesheet" href="css/nvd3/nvd3.css"/>
+    <link href='http://fonts.googleapis.com/css?family=Dosis|Lobster' rel='stylesheet' type='text/css'>
+    <link href="css/videojs/video-js.css" rel="stylesheet">
+    <link href="components/angular-block-ui/dist/angular-block-ui.css" rel="stylesheet">
+</head>
+
+<body>
+
+<div class="notifications" ng-controller="AlertCtrl as alertCtrl">
+    <alert ng-repeat="alert in alertCtrl.alerts" type="{{alert.type}}" close="alertCtrl.closeAlert($index)">{{alert.msg}}</alert>
+</div>
+
+<div class="navbar navbar-default navbar-fixed-top" ng-controller="BoardHeaderController as headerController">
+
+    <div class="container">
+        
+        <a href="#/" class="navbar-brand specialFont">Sweep</a>
+
+        <ul class="nav navbar-nav navbar-left">
+            <li class="dropdown">
+                <a href class="dropdown-toggle" data-toggle="dropdown" role="button">File<span class="caret"></span></a>
+                <ul class="dropdown-menu" role="menu">
+                    <li><a href click-directive>Set Server Address</a></li>
+                    <li><input type="file" id="fileUploader" style= "display: none" file-uploader></li>
+                </ul>
+            </li>
+        </ul>
+        
+        <form name ="headerController.searchForm" class="navbar-form navbar-left" ng-submit="headerController.search(searchObj.searchTerm)" role="search" novalidate>
+            
+            <div class="input-group" style="width: 660px; margin-left: 50px">
+                <input type="text" class="form-control" placeholder="Search" name="srch-term" id="srch-term" ng-model="searchObj.searchTerm" required>
+                <div class="input-group-btn">
+                    <button class="btn btn-success" type="submit"><i class="glyphicon glyphicon-search"></i></button>
+                </div>
+            </div>
+            
+        </form>
+
+        <ul class="nav navbar-nav navbar-right">
+            <li><a href ng-click="headerController.routeTo('/statistics')">Statistics</a></li>
+            <li><a href ng-click="headerController.routeTo('/upload-landing')">Upload</a></li>
+            <li class="dropdown">
+                <a href class="dropdown-toggle" data-toggle="dropdown" role="button">Help<span class="caret"></span></a>
+                <ul class="dropdown-menu" role="menu">
+                    <li><a href ng-click="headerController.routeTo('/about')">About Us</a></li>
+                    <!--<li><a href ng-click="routeTo('/video')">Video Test</a></li>-->
+                    <li><a href="#/block">Block UI Test</a></li>
+                </ul>
+            </li>
+        </ul>
+        
+    </div>
+    
+</div>
+
+<!-- Div for view replacement. -->
+<div id="viewReplaceDiv" ng-view></div>
+
+
+<!--<script src="http://vjs.zencdn.net/4.12/video.js"></script>-->
+<script src="components/videojs/video.js"></script>
+<script src="components/jquery/jquery.min.js"></script>
+<script src="components/angular/angular.js"></script>
+<script src="components/angular-route/angular-route.js"></script>
+<script src="components/bootstrap/bootstrap.js"></script>
+<!--<script src="https://rawgit.com/mbostock/d3/master/d3.min.js"></script>-->
+<script src="components/d3/d3.min.js"></script>
+<!--<script src="https://rawgit.com/novus/nvd3/v1.1.15-beta/nv.d3.min.js"></script>-->
+<script src="components/nvd3/nvd3.min.js"></script>
+<!--<script src="https://rawgit.com/krispo/angular-nvd3/master/dist/angular-nvd3.js"></script>-->
+<script src="components/angular-nvd3/angular-nvd3.js"></script>
+<script type="text/javascript" src="components/angular-bootstrap/ui-bootstrap.min.js"></script>
+<script type="text/javascript" src="components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
+<script type="text/javascript" src="components/angular-block-ui/dist/angular-block-ui.js"></script>
+<script src="js/main/app.js"></script>
+<script src="js/controller/BlockController.js"></script>
+<script src="js/controller/BoardHeaderController.js"></script>
+<script src="js/controller/LandingController.js"></script>
+<script src="js/uploader/UploadController.js"></script>
+<script src="js/service/common-service.js"></script>
+<script src="js/service/gvod-service.js"></script>
+<script src="js/service/sweep-service.js"></script>
+<script src="js/service/aggregator-service.js"></script>
+<script src="js/statistics/StatisticsController.js"></script>
+<script src="js/video/VideoController.js"></script>
+<script src="js/search/SearchController.js"></script>
+</body>
+</html>
