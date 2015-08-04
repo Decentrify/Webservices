@@ -28,6 +28,7 @@ import java.util.EnumSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.kth.ws.sweep.core.SweepSyncComponent;
+import se.sics.caracaldb.MessageRegistrator;
 import se.sics.gvod.config.GradientConfiguration;
 import se.sics.gvod.config.SearchConfiguration;
 import se.sics.kompics.Component;
@@ -43,11 +44,16 @@ import se.sics.kompics.network.netty.NettyInit;
 import se.sics.kompics.network.netty.NettyNetwork;
 import se.sics.kompics.timer.Timer;
 import se.sics.kompics.timer.java.JavaTimer;
+import se.sics.ktoolbox.cc.bootstrap.CCBootstrapComp;
+import se.sics.ktoolbox.cc.bootstrap.CCBootstrapPort;
+import se.sics.ktoolbox.cc.common.config.CaracalClientConfig;
+import se.sics.ktoolbox.cc.common.op.CCSimpleReady;
+import se.sics.ktoolbox.cc.heartbeat.CCHeartbeatComp;
+import se.sics.ktoolbox.cc.heartbeat.CCHeartbeatPort;
 import se.sics.ktoolbox.ipsolver.IpSolverComp;
 import se.sics.ktoolbox.ipsolver.IpSolverPort;
 import se.sics.ktoolbox.ipsolver.msg.GetIp;
 import se.sics.ms.common.ApplicationSelf;
-import se.sics.ms.configuration.MsConfig;
 import se.sics.ms.net.SerializerSetup;
 import se.sics.ms.ports.UiPort;
 import se.sics.ms.search.SearchPeer;
@@ -85,8 +91,13 @@ public class SweepWSLauncher extends ComponentDefinition {
     private Component sweepSync;
     private SweepWS sweepWS;
     private Config config;
+    SystemConfig systemConfig;
+    private Component ccBootstrap;
+    private Component ccHeartbeat;
 
     public SweepWSLauncher() {
+
+
         LOG.info("initiating...");
         if (ipType == null) {
             LOG.error("launcher logic error - ipType not set");
@@ -112,14 +123,17 @@ public class SweepWSLauncher extends ComponentDefinition {
         currentId = AggregatorSerializerSetup.registerSerializers(currentId);
         currentId = ChunkManagerSerializerSetup.registerSerializers(currentId);
         SerializerSetup.registerSerializers(currentId);
+        MessageRegistrator.register();
     }
 
     Handler handleStart = new Handler<Start>() {
         @Override
         public void handle(Start event) {
+
             LOG.info("starting: solving ip...");
             Positive<IpSolverPort> ipSolverPort = ipSolver.getPositive(IpSolverPort.class);
             subscribe(handleGetIp, ipSolverPort);
+
             trigger(new GetIp.Req(EnumSet.of(ipType)), ipSolverPort);
         }
     };
@@ -148,19 +162,45 @@ public class SweepWSLauncher extends ComponentDefinition {
     };
 
     private void connectComponents(InetAddress ip) {
-        config = ConfigFactory.load();
 
-        SystemConfig systemConfig = new SystemConfig(config, ip);
+        config = ConfigFactory.load();
+        systemConfig = new SystemConfig(config, ip);
 
         timer = create(JavaTimer.class, Init.NONE);
         trigger(Start.event, timer.control());
         network = create(NettyNetwork.class, new NettyInit(systemConfig.self));
         trigger(Start.event, network.control());
-        createNConnectSweep(systemConfig);
-        createNConnectSweepSync();
-        sweepWS = new SweepWS((SweepSyncI) sweepSync.getComponent());
-        startWebservice();
+
+        CaracalClientConfig ccConfig = new CaracalClientConfig(config);
+        ccBootstrap = create(CCBootstrapComp.class, new CCBootstrapComp.CCBootstrapInit(systemConfig, ccConfig, BootstrapNodes.readCaracalBootstrap(config)));
+        connect(ccBootstrap.getNegative(Network.class), network.getPositive(Network.class));
+        connect(ccBootstrap.getNegative(Timer.class), timer.getPositive(Timer.class));
+
+        ccHeartbeat = create(CCHeartbeatComp.class, new CCHeartbeatComp.CCHeartbeatInit(systemConfig, ccConfig));
+        connect(ccHeartbeat.getNegative(Timer.class), timer.getPositive(Timer.class));
+        connect(ccHeartbeat.getNegative(CCBootstrapPort.class), ccBootstrap.getPositive(CCBootstrapPort.class));
+
+        trigger(Start.event, ccBootstrap.control());
+        trigger(Start.event, ccHeartbeat.control());
+
+        subscribe(ccReadyHandler, ccHeartbeat.getPositive(CCHeartbeatPort.class));
     }
+
+    /**
+     * Handler indicating the readiness of the caracal client.
+     *
+     */
+    Handler<CCSimpleReady> ccReadyHandler = new Handler<CCSimpleReady>() {
+        @Override
+        public void handle(CCSimpleReady ccReady) {
+
+            LOG.error("Received Caracal Client Ready Event.");
+            createNConnectSweep(systemConfig);
+            createNConnectSweepSync();
+            sweepWS = new SweepWS((SweepSyncI) sweepSync.getComponent());
+            startWebservice();
+        }
+    };
 
     private void createNConnectSweep(SystemConfig systemConfig) {
 
@@ -177,6 +217,8 @@ public class SweepWSLauncher extends ComponentDefinition {
                 chunkManagerConfig, gradientConfig, electionConfig, treeGradientConfig));
         connect(timer.getPositive(Timer.class), sweep.getNegative(Timer.class));
         connect(network.getPositive(Network.class), sweep.getNegative(Network.class));
+        connect(ccHeartbeat.getPositive(CCHeartbeatPort.class), sweep.getNegative(CCHeartbeatPort.class));
+
         trigger(Start.event, sweep.control());
     }
 
