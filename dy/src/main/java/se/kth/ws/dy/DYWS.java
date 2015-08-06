@@ -104,9 +104,18 @@ public class DYWS extends Service<Configuration> {
                 setInitParam("preflightMaxAge", "5184000"). // 2 months
                 setInitParam("allowCredentials", "true");
 
-        int webPort = configuration.getHttpConfiguration().getPort();
+        final int webPort = configuration.getHttpConfiguration().getPort();
         LOG.error("WebPort: " + webPort);
-        launchTray(webPort);
+
+        Thread t1 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                launchTray(webPort);
+            }
+        });
+
+        t1.start();
+        LOG.error("After WebPort: ");
     }
 
 
@@ -137,6 +146,7 @@ public class DYWS extends Service<Configuration> {
             }
         });
 
+        LOG.error("This is sleeeping stilllllll ..... ");
     }
 
     protected static Image createImage(String path, String description) {

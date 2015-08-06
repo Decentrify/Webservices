@@ -154,7 +154,7 @@ public class TrayUI extends TrayIcon implements PropertyChangeListener {
     menu.addPopupMenuListener(popupListener);
   }
 
-  private void createGui() {
+  public void createGui() {
 
     setJPopupMenu(createJPopupMenu());
     try {

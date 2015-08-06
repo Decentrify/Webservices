@@ -271,6 +271,7 @@ public class DYWSLauncher extends ComponentDefinition {
                 chunkManagerConfig, gradientConfig, electionConfig, treeGradientConfig));
         connect(sweepHostComp.getNegative(Timer.class), timerComp.getPositive(Timer.class));
         connect(sweepHostComp.getNegative(Network.class), networkComp.getPositive(Network.class));
+        connect(sweepHostComp.getNegative(CCHeartbeatPort.class), heartbeatComp.getPositive(CCHeartbeatPort.class));
         trigger(Start.event, sweepHostComp.control());
     }
 
