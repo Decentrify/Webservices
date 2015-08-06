@@ -18,6 +18,7 @@
  */
 package se.kth.ws.gvod;
 
+import com.google.common.primitives.Ints;
 import se.sics.gvod.manager.toolbox.GVoDSyncI;
 import com.google.common.util.concurrent.SettableFuture;
 import java.security.SecureRandom;
@@ -35,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.kth.ws.gvod.model.PlayResponseJSON;
 import se.kth.ws.gvod.model.VideoOpErrorJSON;
+import se.sics.gvod.common.util.VoDHeartbeatServiceEnum;
 import se.sics.gvod.manager.util.FileStatus;
 import se.sics.gvod.manager.toolbox.Result;
 import se.sics.gvod.manager.toolbox.VideoInfo;
@@ -147,10 +149,9 @@ public class GVoDRESTMsgs {
             SettableFuture<Result<Boolean>> myFuture = SettableFuture.create();
             gvod.pendingUpload(videoInfo, myFuture);
 
-            Random rand = new SecureRandom();
             VideoInfo ret = new VideoInfo();
             ret.setName(videoInfo.getName());
-            ret.setOverlayId(rand.nextInt());
+            ret.setOverlayId(getRandomOverlayId());
 
             try {
                 Result<Boolean> result = myFuture.get();
@@ -170,6 +171,14 @@ public class GVoDRESTMsgs {
                 VideoOpErrorJSON errorDesc = new VideoOpErrorJSON(videoInfo, "ws internal error");
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(errorDesc).build();
             }
+        }
+        
+        private int getRandomOverlayId() {
+            Random rand = new SecureRandom();
+            byte[] randBytes = new byte[3];
+            rand.nextBytes(randBytes);
+            int overlayId = Ints.fromBytes(VoDHeartbeatServiceEnum.CROUPIER.getServiceId(), randBytes[0], randBytes[1], randBytes[2]);
+            return overlayId;
         }
     }
 
