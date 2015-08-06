@@ -158,7 +158,7 @@ public class DYWS extends Service<Configuration> {
                     + "Are you running a window manager?");
             System.err.println("If you are using Ubuntu, try: sudo apt-get install libgnome");
             System.err.println("Retrying to launch the browser now using a different method.");
-            BareBonesBrowserLaunch.openURL(uri.toASCIIString());
+//            BareBonesBrowserLaunch.openURL(uri.toASCIIString());
         }
     }
 
