@@ -12,9 +12,20 @@ logging:
   # Logger-specific levels.
   loggers:
     # Sets the level for 'com.example.app' to DEBUG.
-    "se.sics.gvod.croupier.Croupier": WARN
-    "se.sics.ms.aggregator": WARN
+    "Kompics": INFO
+    "se.sics.kompics.timer.java.JavaTimer": INFO
+    "NettyNetwork@33333": WARN
+    "NettyNetwork@33334": WARN
+    "NettyNetwork@33335": WARN
+    "se.sics.ktoolbox.cc.bootstrap.CCBootstrapComp": INFO
+    "se.sics.ktoolbox.cc.heartbeat.CCHeartbeatComp": INFO
+    "se.sics.ktoolbox.cc.common.config.CaracalClientConfig": INFO
     "se.sics.p2ptoolbox.croupier.core.Croupier" : WARN
+    "se.sics.gvod.system.HostManagerComp": INFO
+    "se.sics.gvod.core.VoDComp": INFO
+    "se.sics.gvod.core.connMngr.ConnMngrComp": INFO
+    "se.sics.gvod.core.downloadMngr.DownloadMngrComp": INFO
+    "se.sics.gvod.manager.VoDManager": INFO
     
   console:
       enabled: true
