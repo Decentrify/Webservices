@@ -58,6 +58,7 @@ import se.sics.ms.net.SerializerSetup;
 import se.sics.ms.ports.UiPort;
 import se.sics.ms.search.SearchPeer;
 import se.sics.ms.search.SearchPeerInit;
+import se.sics.ms.util.HeartbeatServiceEnum;
 import se.sics.p2ptoolbox.aggregator.network.AggregatorSerializerSetup;
 import se.sics.p2ptoolbox.chunkmanager.ChunkManagerConfig;
 import se.sics.p2ptoolbox.chunkmanager.ChunkManagerSerializerSetup;
@@ -244,6 +245,7 @@ public class SweepWSLauncher extends ComponentDefinition {
     }
 
     public static void main(String[] args) throws IOException {
+        HeartbeatServiceEnum.CROUPIER.setServiceId((byte)1);
         GetIp.NetworkInterfacesMask setIpType = GetIp.NetworkInterfacesMask.PUBLIC;
         if (args.length == 1 && args[0].equals("-tenDot")) {
             setIpType = GetIp.NetworkInterfacesMask.TEN_DOT_PRIVATE;

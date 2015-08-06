@@ -26,6 +26,7 @@ import com.typesafe.config.ConfigFactory;
 import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import se.sics.gvod.common.util.VoDHeartbeatServiceEnum;
 import se.sics.gvod.system.GVoDLauncher;
 import se.sics.kompics.Kompics;
 import se.sics.ktoolbox.ipsolver.msg.GetIp;
@@ -54,6 +55,7 @@ public class GVoDWSLauncher {
     }
 
     public static void main(String[] args) throws IOException {
+        VoDHeartbeatServiceEnum.CROUPIER.setServiceId((byte)2);
         GetIp.NetworkInterfacesMask ipType = GetIp.NetworkInterfacesMask.PUBLIC;
         if(args.length == 1 && args[0].equals("-tenDot")) {
             ipType = GetIp.NetworkInterfacesMask.TEN_DOT_PRIVATE;
