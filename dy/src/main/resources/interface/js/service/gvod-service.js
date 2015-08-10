@@ -26,10 +26,6 @@
         };
 
 
-        function _getUrl(prefix, server, accessPath) {
-            return prefix.concat(server.ip).concat(":").concat(server.port).concat("/").concat(accessPath);
-        }
-
         // Get a promise object.
         function _getPromiseObject(method, url, contentType, data) {
 
@@ -56,69 +52,61 @@
             // Play the resource.
             play: function (json) {
 
+                $log.debug("Initiating play on the resource.");
                 var method = "PUT";
-                var url = _getUrl(_defaultPrefix, server, "play");
-
                 return _getPromiseObject(method, '/play', _defaultContentType, json);
             },
 
 
             download: function (json) {
 
+                $log.debug("Initiating downloadvideo on the resource.");
                 var method = "PUT";
-                var url = _getUrl(_defaultPrefix, server, "downloadvideo");
-
                 return _getPromiseObject(method, '/downloadvideo', _defaultContentType, json);
             },
 
             // Fetch the files in the library.
             fetchFiles: function () {
 
-                $log.info("Firing Fetch Files call to server at port: " + server.port);
+                $log.debug("Initiating fetch file call.");
                 var method = "GET";
-                var url = _getUrl(_defaultPrefix, server, "files");
-                $log.info("Url Constructed : " + url);
-
                 return _getPromiseObject(method, '/files', _defaultContentType);
+
             },
 
 
             pendingUpload: function (json) {
 
+                $log.debug("Initiating the pending upload.");
                 var method = 'PUT';
-                var url = _getUrl(_defaultPrefix, server, "pendinguploadvideo");
-                $log.info('Sending Pending Upload to: ' + url);
                 return _getPromiseObject(method, '/pendinguploadvideo', _defaultContentType, json);
-
             },
 
             upload: function (json) {
 
+                $log.debug("Initiating the upload");
                 var method = 'PUT';
-                var url = _getUrl(_defaultPrefix, server, "uploadvideo");
-                $log.info('Sending Pending Upload to: ' + url);
                 return _getPromiseObject(method, '/uploadvideo', _defaultContentType, json);
             },
 
             stop: function (json) {
 
+                $log.debug("Invoking the stop on the resource.");
                 var method = 'PUT';
-                var url = _getUrl(_defaultPrefix, server, "stop");
-
                 return _getPromiseObject(method, '/stop', _defaultContentType, json);
             },
 
             playPos: function (json, port) {
 
+                $log.debug("Fetching the play position on the resource.");
                 var method = 'PUT';
-                var url = _getUrl(_defaultPrefix, server, "playPos");
-
                 return _getPromiseObject(method, 'playPos', _defaultContentType, json);
             },
 
             removeVideo: function (json) {
+
+                $log.debug("Initiating a call to remove the video.");
                 var method = 'PUT';
-                var url = _getUrl(_defaultPrefix, server, "removeVideo");
                 return _getPromiseObject(method, 'removeVideo', _defaultContentType, json);
             }
 
