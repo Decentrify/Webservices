@@ -67,7 +67,7 @@
                 </executions>
             </plugin>
             
-       <!--     <plugin>
+            <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>appassembler-maven-plugin</artifactId>
                 <version>1.9</version>
@@ -89,6 +89,10 @@
                                 <program>
                                     <mainClass>se.kth.ws.dy.DYWSLauncher</mainClass>
                                     <id>dy</id>
+                                    <commandLineArguments>
+                                        <commandLineArgument>-Djava.net.preferIPv4Stack=true</commandLineArgument>
+                                        <commandLineArgument>-Dconfig.file=application.conf</commandLineArgument>
+                                    </commandLineArguments>
                                 </program>
                             </programs>
                         </configuration>
@@ -97,65 +101,65 @@
             </plugin>
 
             <plugin>
-              <groupId>com.akathist.maven.plugins.launch4j</groupId>
-              <artifactId>launch4j-maven-plugin</artifactId>
-              <executions>
-                <execution>
-                  <id>l4j-clui</id>
-                  <phase>package</phase>
-                  <goals>
-                    <goal>launch4j</goal>
-                  </goals>
-                  <configuration>
-                    <headerType>gui</headerType>
-                    <outfile>${project.build.directory}/dy.exe</outfile>
-                    <dontWrapJar>false</dontWrapJar>
-                    <jar>target/${project.artifactId}-${project.version}-shaded.jar</jar>
-                    <classPath>
-                      <mainClass>se.kth.ws.dy.DYWSLauncher</mainClass>
-                      <preCp>lib\*.jar</preCp>
-                    </classPath>
-                    <icon>src/main/resources/icons/dy.ico</icon>
-                    <errTitle>DY Error</errTitle>
-                    <singleInstance>
-                      <mutexName>DY</mutexName>
-                      <windowTitle>Another Instance of DY is already Running.</windowTitle>
-                    </singleInstance>
-                    <jre>
-                      <minVersion>1.6.0</minVersion>
-                      <maxVersion>1.9.0</maxVersion>
-                      <initialHeapSize>128</initialHeapSize>
-                      <maxHeapSize>1024</maxHeapSize>
-                      <runtimeBits>64/32</runtimeBits>
-                    </jre>
+                <groupId>com.akathist.maven.plugins.launch4j</groupId>
+                <artifactId>launch4j-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>l4j-clui</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>launch4j</goal>
+                        </goals>
+                        <configuration>
+                            <headerType>gui</headerType>
+                            <outfile>${project.build.directory}/dy.exe</outfile>
+                            <dontWrapJar>false</dontWrapJar>
+                            <jar>target/${project.artifactId}-${project.version}-shaded.jar</jar>
+                            <classPath>
+                                <mainClass>se.kth.ws.dy.DYWSLauncher</mainClass>
+                                <preCp>lib\*.jar</preCp>
+                            </classPath>
+                            <icon>src/main/resources/icons/dy.ico</icon>
+                            <errTitle>DY Error</errTitle>
+                            <singleInstance>
+                                <mutexName>DY</mutexName>
+                                <windowTitle>Another Instance of DY is already Running.</windowTitle>
+                            </singleInstance>
+                            <jre>
+                                <minVersion>1.6.0</minVersion>
+                                <maxVersion>1.8.0</maxVersion>
+                                <initialHeapSize>128</initialHeapSize>
+                                <maxHeapSize>1024</maxHeapSize>
+                                <runtimeBits>64/32</runtimeBits>
+                            </jre>
 		    
-			<splash>
-			<file>icons/karamel-logo.bmp</file>
-			<waitForWindow>false</waitForWindow>
-			<timeout>2</timeout>
-			<timeoutErr>false</timeoutErr>
-			</splash>
+                            <splash>
+                                <file>src/main/resources/icons/dy-logo.bmp</file>
+                                <waitForWindow>false</waitForWindow>
+                                <timeout>2</timeout>
+                                <timeoutErr>false</timeoutErr>
+                            </splash>
 		    
-		    <versionInfo>
-		      <fileVersion>0.0.0.1</fileVersion>
-		      <txtFileVersion>DY</txtFileVersion>
-		      <fileDescription>DY - orchestration for Chef Solo</fileDescription>
-		      <copyright>DY</copyright>
-		      <productVersion>0.0.0.1</productVersion>
-		      <txtProductVersion>DY</txtProductVersion>
-		      <productName>DY</productName>
-		      <companyName>decentrify.io</companyName>
-		      <internalName>DY</internalName>
-		      <originalFilename>dy.exe</originalFilename>
-		    </versionInfo>
-		    <messages>
-		      <startupErr>DY startup error</startupErr>
-		      <jreVersionErr>DY requires java version 6 or higher.</jreVersionErr>
-		      <launcherErr>DY launcher error. DY requires java version 6 or higher.</launcherErr>
-		    </messages>
-                  </configuration>
-                </execution>
-              </executions>
+                            <versionInfo>
+                                <fileVersion>0.0.0.1</fileVersion>
+                                <txtFileVersion>DY</txtFileVersion>
+                                <fileDescription>DY - orchestration for Chef Solo</fileDescription>
+                                <copyright>DY</copyright>
+                                <productVersion>0.0.0.1</productVersion>
+                                <txtProductVersion>DY</txtProductVersion>
+                                <productName>DY</productName>
+                                <companyName>decentrify.io</companyName>
+                                <internalName>DY</internalName>
+                                <originalFilename>dy.exe</originalFilename>
+                            </versionInfo>
+                            <messages>
+                                <startupErr>DY startup error</startupErr>
+                                <jreVersionErr>DY requires java version 6 or higher.</jreVersionErr>
+                                <launcherErr>DY launcher error. DY requires java version 6 or higher.</launcherErr>
+                            </messages>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
             <plugin>
@@ -196,7 +200,7 @@
                     </execution>
                 </executions>
             </plugin>
--->
+
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>

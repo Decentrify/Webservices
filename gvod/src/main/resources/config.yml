@@ -1,5 +1,5 @@
 http:
-  port: 18080
+  port: 18180
   adminPort: 18181
   gzip:
     enabled: false
