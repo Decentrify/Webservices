@@ -264,9 +264,7 @@ public class DYWSLauncher extends ComponentDefinition {
         ChunkManagerConfig chunkManagerConfig = new ChunkManagerConfig(config);
         TreeGradientConfig treeGradientConfig = new TreeGradientConfig(config);
 
-        //TODO Abhi - why aren't you building this applicationSelf in SearchPeer and instead risk me handing this reference to someone else - shared object problem
-        ApplicationSelf applicationSelf = new ApplicationSelf(systemConfig.self);
-        sweepHostComp = create(SearchPeer.class, new SearchPeerInit(applicationSelf, systemConfig, croupierConfig,
+        sweepHostComp = create(SearchPeer.class, new SearchPeerInit(systemConfig, croupierConfig,
                 SearchConfiguration.build(), GradientConfiguration.build(),
                 chunkManagerConfig, gradientConfig, electionConfig, treeGradientConfig));
         connect(sweepHostComp.getNegative(Timer.class), timerComp.getPositive(Timer.class));
