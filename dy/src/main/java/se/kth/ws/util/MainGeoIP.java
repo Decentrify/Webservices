@@ -13,9 +13,9 @@ public class MainGeoIP {
     public static void main(String[] args) throws IOException, GeoIp2Exception {
         
         GeoIP geoIP = new GeoIP();
-        geoIP.initializeDatabase("geoip_database.mmdb");
+        geoIP.initializeDatabase("src/main/resources/geoip_database.mmdb");
         
         InetAddress address = InetAddress.getByName("193.10.64.85");
-        geoIP.isAllowed(address);
+        System.out.println(geoIP.isAllowed(address, "Sweden"));
     }
 }

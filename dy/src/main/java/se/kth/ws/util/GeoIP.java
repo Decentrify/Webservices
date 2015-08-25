@@ -33,12 +33,21 @@ public class GeoIP {
     }
     
     
-    public boolean isAllowed(InetAddress address) throws IOException, GeoIp2Exception {
+    public boolean isAllowed(InetAddress address, String... allowedLocations) throws IOException, GeoIp2Exception {
         
         CountryResponse response = reader.country(address);
-        System.out.println(response.getCountry().getName());
-        
-        return false;
+        String requestSource = response.getCountry().getName();
+
+        boolean result = false;
+        for(String loc : allowedLocations){
+
+            if(loc.equalsIgnoreCase(requestSource)){
+                result = true;
+                break;
+            }
+        }
+
+        return result;
     }
     
 }
