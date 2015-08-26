@@ -83,7 +83,7 @@ import java.util.EnumSet;
  */
 public class DYWSLauncher extends ComponentDefinition {
 
-    private Logger LOG = LoggerFactory.getLogger(DYWSLauncherCopy.class);
+    private Logger LOG = LoggerFactory.getLogger(DYWSLauncher.class);
     private static GetIp.NetworkInterfacesMask ipType;
 
     public static void setIpType(GetIp.NetworkInterfacesMask setIpType) {
@@ -395,12 +395,12 @@ public class DYWSLauncher extends ComponentDefinition {
         if (args.length == 1 && args[0].equals("-tenDot")) {
             setIpType = GetIp.NetworkInterfacesMask.TEN_DOT_PRIVATE;
         }
-        DYWSLauncherCopy.setIpType(setIpType);
+        DYWSLauncher.setIpType(setIpType);
 
         if (Kompics.isOn()) {
             Kompics.shutdown();
         }
-        Kompics.createAndStart(DYWSLauncherCopy.class, Runtime.getRuntime().availableProcessors(), 20); // Yes 20 is totally arbitrary
+        Kompics.createAndStart(DYWSLauncher.class, Runtime.getRuntime().availableProcessors(), 20); // Yes 20 is totally arbitrary
         try {
             Kompics.waitForTermination();
         } catch (InterruptedException ex) {
