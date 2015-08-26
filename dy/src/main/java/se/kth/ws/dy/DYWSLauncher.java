@@ -19,17 +19,14 @@
 package se.kth.ws.dy;
 
 import com.google.common.util.concurrent.SettableFuture;
-import se.kth.ws.sweep.core.SweepSyncI;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigException;
 import com.typesafe.config.ConfigFactory;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.util.EnumSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.kth.ws.sweep.BootstrapNodes;
 import se.kth.ws.sweep.core.SweepSyncComponent;
+import se.kth.ws.sweep.core.SweepSyncI;
 import se.sics.caracaldb.MessageRegistrator;
 import se.sics.gvod.common.util.VoDHeartbeatServiceEnum;
 import se.sics.gvod.config.GradientConfiguration;
@@ -38,14 +35,7 @@ import se.sics.gvod.manager.toolbox.GVoDSyncI;
 import se.sics.gvod.network.GVoDSerializerSetup;
 import se.sics.gvod.system.HostManagerComp;
 import se.sics.gvod.system.HostManagerConfig;
-import se.sics.kompics.Component;
-import se.sics.kompics.ComponentDefinition;
-import se.sics.kompics.Fault;
-import se.sics.kompics.Handler;
-import se.sics.kompics.Init;
-import se.sics.kompics.Kompics;
-import se.sics.kompics.Start;
-import se.sics.kompics.Stop;
+import se.sics.kompics.*;
 import se.sics.kompics.network.Network;
 import se.sics.kompics.network.netty.NettyInit;
 import se.sics.kompics.network.netty.NettyNetwork;
@@ -53,6 +43,7 @@ import se.sics.kompics.timer.Timer;
 import se.sics.kompics.timer.java.JavaTimer;
 import se.sics.ktoolbox.cc.bootstrap.CCBootstrapComp;
 import se.sics.ktoolbox.cc.bootstrap.CCBootstrapPort;
+import se.sics.ktoolbox.cc.bootstrap.msg.CCDisconnected;
 import se.sics.ktoolbox.cc.bootstrap.msg.CCReady;
 import se.sics.ktoolbox.cc.common.config.CaracalClientConfig;
 import se.sics.ktoolbox.cc.common.op.CCSimpleReady;
@@ -61,7 +52,6 @@ import se.sics.ktoolbox.cc.heartbeat.CCHeartbeatPort;
 import se.sics.ktoolbox.ipsolver.IpSolverComp;
 import se.sics.ktoolbox.ipsolver.IpSolverPort;
 import se.sics.ktoolbox.ipsolver.msg.GetIp;
-import se.sics.ms.common.ApplicationSelf;
 import se.sics.ms.net.SerializerSetup;
 import se.sics.ms.ports.UiPort;
 import se.sics.ms.search.SearchPeer;
@@ -78,19 +68,28 @@ import se.sics.p2ptoolbox.gradient.GradientConfig;
 import se.sics.p2ptoolbox.gradient.GradientSerializerSetup;
 import se.sics.p2ptoolbox.tgradient.TreeGradientConfig;
 import se.sics.p2ptoolbox.util.config.SystemConfig;
+import se.sics.p2ptoolbox.util.helper.SystemConfigBuilder;
 import se.sics.p2ptoolbox.util.serializer.BasicSerializerSetup;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketException;
+import java.util.EnumSet;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>
  */
 public class DYWSLauncher extends ComponentDefinition {
 
-    private Logger LOG = LoggerFactory.getLogger(DYWSLauncher.class);
+    private Logger LOG = LoggerFactory.getLogger(DYWSLauncherCopy.class);
     private static GetIp.NetworkInterfacesMask ipType;
 
     public static void setIpType(GetIp.NetworkInterfacesMask setIpType) {
         ipType = setIpType;
     }
+    private static final int BIND_RETRY =3;
 
     private Component timerComp;
     private Component ipSolverComp;
@@ -102,14 +101,17 @@ public class DYWSLauncher extends ComponentDefinition {
     private Component vodHostComp;
     private DYWS dyWS;
     private Config config;
-    private SystemConfig systemConfig;
     private CaracalClientConfig ccConfig;
+
+    private SystemConfigBuilder builder;
+    private SystemConfig systemConfig;
+    private Socket socket;
 
     private SettableFuture<GVoDSyncI> gvodSyncIFuture;
     private SweepSyncI sweepSyncI;
 
     private HostManagerConfig gvodConfig;
-    
+
     byte[] vodSchemaId = null;
     //**************************************************************************
 
@@ -148,7 +150,7 @@ public class DYWSLauncher extends ComponentDefinition {
         System.exit(1);
         return Fault.ResolveAction.RESOLVED;
     }
-    
+
     private void registerSerializers() {
         MessageRegistrator.register();
         int currentId = 128;
@@ -185,29 +187,107 @@ public class DYWSLauncher extends ComponentDefinition {
             }
 
             config = ConfigFactory.load();
-            systemConfig = new SystemConfig(config, ip);
+//            systemConfig = new SystemConfig(config, ip);
             ccConfig = new CaracalClientConfig(config);
             gvodConfig = new HostManagerConfig(config, ip);
+            builder = new SystemConfigBuilder(config).setSelfIp(ip);
+
 
             phase2();
         }
     };
 
     private void phase2() {
+
+//      Initiate the socket bind operation.
+        buildSysConfig();
+
+//      Start connecting the network and other components.
         connectNetwork();
         connectCaracalClient();
         connectHeartbeat();
+
+        subscribe(handleCaracalDisconnect, caracalClientComp.getPositive(CCBootstrapPort.class));
         subscribe(handleCaracalReady, caracalClientComp.getPositive(CCBootstrapPort.class));
         subscribe(handleHeartbeatReady, heartbeatComp.getPositive(CCHeartbeatPort.class));
     }
-    
+
+
+    /**
+     * Start building the system configuration.
+     */
+    private void buildSysConfig(){
+
+//      Initiate the socket bind operation.
+        initiateSocketBind();
+        LOG.debug("Socket successfully sound to ip :{} and port: {}", builder.getSelfIp(), builder.getSelfPort());
+
+//      Once the port and identifier are set build the configuration.
+        LOG.debug("Building the system configuration.");
+        systemConfig = builder.build();
+    }
+
+
+
+    /**
+     * Try to bind on the socket and keep a
+     * reference of the socket.
+     */
+    private void initiateSocketBind() {
+
+        LOG.debug("Initiating the binding on the socket to keep the port being used by some other service.");
+        InetAddress selfIp = builder.getSelfIp();
+
+        int retries = BIND_RETRY;
+        while (retries > 0) {
+
+//          Port gets updated, so needs to be reset.
+            Integer selfPort = builder.getSelfPort();
+
+            try {
+
+                LOG.debug("Trying to bind on the socket1 with ip: {} and port: {}", selfIp, selfPort);
+                bindOperation(selfIp, selfPort);
+                break;  // If exception is not thrown, break the loop.
+            }
+
+            catch (IOException e) {
+
+                LOG.debug("Socket Bind failed, retrying.");
+                builder.setPort();
+            }
+
+            retries--;
+        }
+
+        if(retries <= 0) {
+            LOG.debug("Unable to bind on a socket, exiting.");
+            throw new RuntimeException("Unable to identify port for the socket to bind on.");
+        }
+
+    }
+
+    /**
+     * Based on the ip and port, create a socket to bind on that address and port.
+     * @param selfIp ip-address
+     * @param selfPort port
+     * @throws IOException
+     */
+    private void bindOperation(InetAddress selfIp, Integer selfPort) throws IOException {
+
+        socket = new Socket();
+        socket.setReuseAddress(true);
+        socket.bind(new InetSocketAddress(selfIp, selfPort));
+    }
+
+
     private void connectNetwork() {
         networkComp = create(NettyNetwork.class, new NettyInit(systemConfig.self));
         trigger(Start.event, networkComp.control());
     }
-    
+
     private void connectCaracalClient() {
-        
+
         caracalClientComp = create(CCBootstrapComp.class, new CCBootstrapComp.CCBootstrapInit(systemConfig, ccConfig, BootstrapNodes.readCaracalBootstrap(config)));
         connect(caracalClientComp.getNegative(Timer.class), timerComp.getPositive(Timer.class));
         connect(caracalClientComp.getNegative(Network.class), networkComp.getPositive(Network.class));
@@ -233,6 +313,18 @@ public class DYWSLauncher extends ComponentDefinition {
         }
     };
 
+    /**
+     * Caracal client gets disconnected.
+     */
+    private Handler<CCDisconnected> handleCaracalDisconnect = new Handler<CCDisconnected>() {
+        @Override
+        public void handle(CCDisconnected event) {
+            LOG.debug("Caracal client disconnected, need to initiate counter measures.");
+        }
+    };
+
+
+
     private Handler handleHeartbeatReady = new Handler<CCSimpleReady>() {
         @Override
         public void handle(CCSimpleReady e) {
@@ -240,14 +332,14 @@ public class DYWSLauncher extends ComponentDefinition {
             phase3();
         }
     };
-    
+
     private void phase3() {
         connectSweep();
         connectSweepSync();
         connectVoDHost();
         startWebservice();
     }
-    
+
     private void connectVoDHost() {
         vodHostComp = create(HostManagerComp.class, new HostManagerComp.HostManagerInit(gvodConfig, gvodSyncIFuture, vodSchemaId));
         connect(vodHostComp.getNegative(Network.class), networkComp.getPositive(Network.class));
@@ -256,7 +348,7 @@ public class DYWSLauncher extends ComponentDefinition {
         connect(vodHostComp.getNegative(CCHeartbeatPort.class), heartbeatComp.getPositive(CCHeartbeatPort.class));
         trigger(Start.event, vodHostComp.control());
     }
-    
+
     private void connectSweep() {
         GradientConfig gradientConfig = new GradientConfig(config);
         CroupierConfig croupierConfig = new CroupierConfig(config);
@@ -303,12 +395,12 @@ public class DYWSLauncher extends ComponentDefinition {
         if (args.length == 1 && args[0].equals("-tenDot")) {
             setIpType = GetIp.NetworkInterfacesMask.TEN_DOT_PRIVATE;
         }
-        DYWSLauncher.setIpType(setIpType);
+        DYWSLauncherCopy.setIpType(setIpType);
 
         if (Kompics.isOn()) {
             Kompics.shutdown();
         }
-        Kompics.createAndStart(DYWSLauncher.class, Runtime.getRuntime().availableProcessors(), 20); // Yes 20 is totally arbitrary
+        Kompics.createAndStart(DYWSLauncherCopy.class, Runtime.getRuntime().availableProcessors(), 20); // Yes 20 is totally arbitrary
         try {
             Kompics.waitForTermination();
         } catch (InterruptedException ex) {

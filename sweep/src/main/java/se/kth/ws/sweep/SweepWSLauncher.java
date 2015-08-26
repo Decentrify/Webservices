@@ -74,6 +74,7 @@ import se.sics.p2ptoolbox.util.serializer.BasicSerializerSetup;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>
+ * FIXME: Fix the launcher with the updated SystemConfig.
  */
 public class SweepWSLauncher extends ComponentDefinition {
 
@@ -165,7 +166,7 @@ public class SweepWSLauncher extends ComponentDefinition {
     private void connectComponents(InetAddress ip) {
 
         config = ConfigFactory.load();
-        systemConfig = new SystemConfig(config, ip);
+//        systemConfig = new SystemConfig(config, ip);
 
         timer = create(JavaTimer.class, Init.NONE);
         trigger(Start.event, timer.control());
