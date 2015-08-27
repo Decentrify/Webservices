@@ -320,6 +320,10 @@ public class DYWSLauncher extends ComponentDefinition {
                 LOG.error("exception:vod schema undefined shutting down");
                 System.exit(1);
             }
+
+            if(dyWS != null){
+                dyWS.setIsServerDown(false);
+            }
         }
     };
 

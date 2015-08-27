@@ -120,7 +120,7 @@ public class DYWS extends Service<Configuration> {
         });
 
         t1.start();
-        LOG.error("After WebPort: ");
+        LOG.error("After WebPort ~~~~~~ ");
     }
 
 
@@ -130,7 +130,12 @@ public class DYWS extends Service<Configuration> {
     private void launchTray(final int port){
 
         if (SystemTray.isSupported()) {
+
+            LOG.debug("Invoking the tray now ... ");
             trayUi = new TrayUI(createImage("src/main/resources/icons/dy.png", "tray icon"), port);
+        }
+        else{
+            LOG.debug("@@@@@ Well This is embarrassing ... ");
         }
 
         EventQueue.invokeLater(new Runnable() {

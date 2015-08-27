@@ -6,6 +6,25 @@ body {
     font-family: 'Dosis', sans-serif;
 }
 
+.fa-circle{
+    /*background-color: #005580;*/
+}
+
+
+.circle{
+    width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    background-color: orange;
+}
+
+.serverUp{
+    background-color: mediumseagreen;
+}
+
+.serverDown{
+    background-color: indianred;
+}
 
 div .search-image{
     background-image: url(../image/Galaxies_image.png);

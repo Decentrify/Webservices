@@ -4,17 +4,18 @@
     'use strict';
     angular.module('app')
 
-        .controller('BoardHeaderController', ['$log', 'common', BoardHeaderController])
+        .controller('BoardHeaderController', ['$log','$interval','$scope', 'common', BoardHeaderController])
         .directive('fileUploader', ['$log', 'gvodService', 'sweepService', fileUploader])
         .directive('clickDirective', ['$log', clickDirective]);
 
 
 // MAIN HEADER CONTROLLER.
-    function BoardHeaderController($log, common) {
+    function BoardHeaderController($log, $interval, $scope, common) {
 
 
         $log.info('Board Header Controller Initialized.');
         var self = this;
+        self.serverUp = true;
 
         self.routeTo = function (path) {
             common.routeTo(path);
@@ -30,7 +31,29 @@
                 $log.info('search form valid');
                 common.routeTo('/search/' + searchTerm);
             }
-        }
+        };
+
+        var timer = $interval( function(){
+
+            $log.debug('Fetching the server status.');
+            common.getServerStatus()
+
+                .then(function(data) {
+
+                    $log.debug("Is server down : " + data);
+                    self.serverUp = !data;
+                })
+                .catch(function(data){
+                    $log.debug("REST Call to fetch the server status failed with status: " + data.status);
+                })
+
+        }, 5000);
+
+        $scope.$on('$destroy', function(event){
+
+            $log.debug("Going to cancel the interval.");
+            $interval.cancel(timer);
+        })
     }
 
 // DIRECTIVE EXPLAINING

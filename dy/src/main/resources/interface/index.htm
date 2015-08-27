@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="css/bootstrap/bootstrap.css"/>
     <link rel="stylesheet" href="css/main.css"/>
     <link rel="stylesheet" href="css/nvd3/nvd3.css"/>
+    <link rel="stylesheet" href="css/font-awesome/css/font-awesome.css"/>
     <link href='http://fonts.googleapis.com/css?family=Dosis|Lobster' rel='stylesheet' type='text/css'>
     <link href="css/videojs/video-js.css" rel="stylesheet">
     <link href="components/angular-block-ui/dist/angular-block-ui.css" rel="stylesheet">
@@ -25,14 +26,18 @@
         <a href="#/" class="navbar-brand specialFont">Sweep</a>
 
         <ul class="nav navbar-nav navbar-left">
-            <li class="dropdown">
-                <a href class="dropdown-toggle" data-toggle="dropdown" role="button">File<span class="caret"></span></a>
-                <ul class="dropdown-menu" role="menu">
-                    <li><a href click-directive>Set Server Address</a></li>
-                    <li><input type="file" id="fileUploader" style= "display: none" file-uploader></li>
-                </ul>
-            </li>
+            <!--<li class="dropdown">-->
+                <!--<a href class="dropdown-toggle" data-toggle="dropdown" role="button">File<span class="caret"></span></a>-->
+                <!--<ul class="dropdown-menu" role="menu">-->
+                    <!--<li><a href click-directive>Set Server Address</a></li>-->
+                    <!--<li><input type="file" id="fileUploader" style= "display: none" file-uploader></li>-->
+                <!--</ul>-->
+            <!--</li>-->
+
+            <li><a title="Server Status"><div class="circle" ng-class="{serverUp: headerController.serverUp, serverDown: !headerController.serverUp}"></div></a></li>
+            <!--<li><a><i style="font-size: 16px;" class="fa fa-circle"></i></a></li>-->
         </ul>
+
         
         <form name ="headerController.searchForm" class="navbar-form navbar-left" ng-submit="headerController.search(searchObj.searchTerm)" role="search" novalidate>
             
