@@ -25,6 +25,7 @@ import java.security.SecureRandom;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
@@ -402,4 +403,28 @@ public class GVoDRESTMsgs {
             }
         }
     }
+
+    @Path("/caracalStatus")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public static class  GetCaracalStatus {
+
+        private AtomicBoolean isServerDown = new AtomicBoolean();
+
+        public GetCaracalStatus(boolean status){
+            this.isServerDown.set(status);
+        }
+
+        public void setIsServerDown(boolean status){
+            this.isServerDown.set(status);
+        }
+
+        @GET
+        public Response caracalStatus(){
+            LOG.info("Received request to return the status of the caracal server.");
+            return Response.status(Response.Status.OK).entity(isServerDown.get()).build();
+        }
+
+    }
+
 }

@@ -55,6 +55,7 @@ public class DYWS extends Service<Configuration> {
     private SettableFuture<GVoDSyncI> gvodSyncIFuture;
     private SweepSyncI sweepSyncI;
     private TrayUI trayUi;
+    private GVoDRESTMsgs.GetCaracalStatus serverStatus;
 
     public DYWS(SweepSyncI sweepSyncI, SettableFuture<GVoDSyncI> gvodSyncIFuture) {
         this.sweepSyncI = sweepSyncI;
@@ -68,7 +69,7 @@ public class DYWS extends Service<Configuration> {
 
     @Override
     public void run(Configuration configuration, Environment environment) throws Exception {
-        
+
         GVoDSyncI gvodSyncI = null;
         try {
             LOG.info("waiting on creation of gvod synchronous interface");
@@ -81,10 +82,10 @@ public class DYWS extends Service<Configuration> {
             LOG.error("gvod synchronous interface was not instantiated - possible wrong creation order");
             throw new RuntimeException(ex);
         }
-        
+
         environment.addProvider(new SweepRESTMsgs.SearchIndexResource(sweepSyncI));
         environment.addProvider(new SweepRESTMsgs.AddIndexResource(sweepSyncI));
-        
+
         environment.addProvider(new GVoDRESTMsgs.LibraryResource(gvodSyncI));
         environment.addProvider(new GVoDRESTMsgs.FilesResource(gvodSyncI));
         environment.addProvider(new GVoDRESTMsgs.PendingUploadResource(gvodSyncI));
@@ -93,6 +94,10 @@ public class DYWS extends Service<Configuration> {
         environment.addProvider(new GVoDRESTMsgs.RemoveResource(gvodSyncI));
         environment.addProvider(new GVoDRESTMsgs.PlayVideoResource(gvodSyncI));
         environment.addProvider(new GVoDRESTMsgs.StopVideoResource(gvodSyncI));
+
+//      Special status handling of the caracal message.
+        serverStatus  = new GVoDRESTMsgs.GetCaracalStatus(false);
+        environment.addProvider(serverStatus);
 
         /*
          * To allow cross origin resource request from angular js client
@@ -178,6 +183,20 @@ public class DYWS extends Service<Configuration> {
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
+    }
+
+
+    /**
+     * Change the caracal server status.
+     * This will affect the capability of the application
+     * to upload / download videos.
+     *
+     * @param status
+     */
+    public void setIsServerDown(boolean status){
+
+        LOG.debug("Component indicating to change the status of the server.");
+        serverStatus.setIsServerDown(status);
     }
 
 }

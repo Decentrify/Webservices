@@ -187,11 +187,9 @@ public class DYWSLauncher extends ComponentDefinition {
             }
 
             config = ConfigFactory.load();
-//            systemConfig = new SystemConfig(config, ip);
             ccConfig = new CaracalClientConfig(config);
             gvodConfig = new HostManagerConfig(config, ip);
             builder = new SystemConfigBuilder(config).setSelfIp(ip);
-
 
             phase2();
         }
@@ -261,7 +259,7 @@ public class DYWSLauncher extends ComponentDefinition {
         }
 
         if(retries <= 0) {
-            LOG.debug("Unable to bind on a socket, exiting.");
+            LOG.error("Unable to bind on a socket, exiting.");
             throw new RuntimeException("Unable to identify port for the socket to bind on.");
         }
 
@@ -279,6 +277,18 @@ public class DYWSLauncher extends ComponentDefinition {
         socket.setReuseAddress(true);
         socket.bind(new InetSocketAddress(selfIp, selfPort));
     }
+
+
+    /**
+     * The method is used to release the socket by initiating
+     * close method on the socket.
+     */
+    private void releaseSocket() throws IOException {
+
+        if(this.socket != null && !this.socket.isClosed())
+            this.socket.close();
+    }
+
 
 
     private void connectNetwork() {
@@ -319,7 +329,13 @@ public class DYWSLauncher extends ComponentDefinition {
     private Handler<CCDisconnected> handleCaracalDisconnect = new Handler<CCDisconnected>() {
         @Override
         public void handle(CCDisconnected event) {
+
             LOG.debug("Caracal client disconnected, need to initiate counter measures.");
+
+//          Inform the web service if it has already been booted.
+            if(dyWS != null){
+                dyWS.setIsServerDown(true);
+            }
         }
     };
 
