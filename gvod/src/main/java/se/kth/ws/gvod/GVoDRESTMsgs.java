@@ -411,8 +411,10 @@ public class GVoDRESTMsgs {
 
         private AtomicBoolean isServerDown = new AtomicBoolean();
 
-        public GetCaracalStatus(boolean status){
-            this.isServerDown.set(status);
+        public GetCaracalStatus(){
+
+            this.isServerDown = new AtomicBoolean();
+            this.isServerDown.set(false);
         }
 
         public void setIsServerDown(boolean status){
@@ -421,6 +423,7 @@ public class GVoDRESTMsgs {
 
         @GET
         public Response caracalStatus(){
+
             LOG.info("Received request to return the status of the caracal server.");
             return Response.status(Response.Status.OK).entity(isServerDown.get()).build();
         }

@@ -96,7 +96,7 @@ public class DYWS extends Service<Configuration> {
         environment.addProvider(new GVoDRESTMsgs.StopVideoResource(gvodSyncI));
 
 //      Special status handling of the caracal message.
-        serverStatus  = new GVoDRESTMsgs.GetCaracalStatus(false);
+        serverStatus  = new GVoDRESTMsgs.GetCaracalStatus();
         environment.addProvider(serverStatus);
 
         /*
