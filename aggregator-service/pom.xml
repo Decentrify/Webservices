@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>se.kth.ws</groupId>
+        <artifactId>Webservices</artifactId>
+        <version>2.0-SNAPSHOT</version>
+    </parent>
+
+    <groupId>se.kth.ws</groupId>
+    <artifactId>aggregator-service</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+
+    <properties>
+        <global.aggregator.version>1.0-SNAPSHOT</global.aggregator.version>
+        <search.application.version>1.3-SNAPSHOT</search.application.version>
+        <ipsolver.version>1.1-SNAPSHOT</ipsolver.version>
+    </properties>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>se.sics.ktoolbox.aggregator.global</groupId>
+            <artifactId>aggregator-core</artifactId>
+            <version>${global.aggregator.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>se.kth.ms</groupId>
+            <artifactId>ms-search</artifactId>
+            <version>${search.application.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>se.sics.ktoolbox.ipsolver</groupId>
+            <artifactId>core</artifactId>
+            <version>${ipsolver.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+    </dependencies>
+
+
+
+</project>
