@@ -1,4 +1,4 @@
-package se.kth.ws.aggregator;
+package se.kth.ws.aggregator.system;
 
 import se.sics.kompics.Init;
 

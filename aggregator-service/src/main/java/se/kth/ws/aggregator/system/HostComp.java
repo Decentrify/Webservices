@@ -1,9 +1,10 @@
-package se.kth.ws.aggregator;
+package se.kth.ws.aggregator.system;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import se.kth.ws.aggregator.util.DesignerEnum;
 import se.sics.kompics.*;
 import se.sics.kompics.network.Network;
 import se.sics.kompics.network.netty.NettyInit;
@@ -11,6 +12,7 @@ import se.sics.kompics.network.netty.NettyNetwork;
 import se.sics.kompics.timer.Timer;
 import se.sics.kompics.timer.java.JavaTimer;
 import se.sics.ktoolbox.aggregator.global.api.ports.GlobalAggregatorPort;
+import se.sics.ktoolbox.aggregator.global.api.system.DesignProcessor;
 import se.sics.ktoolbox.aggregator.global.core.GlobalAggregator;
 import se.sics.ktoolbox.aggregator.global.core.GlobalAggregatorInit;
 import se.sics.ktoolbox.aggregator.global.core.Visualizer;
@@ -26,6 +28,8 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Component responsible for creating and initiating the
@@ -36,7 +40,8 @@ import java.util.EnumSet;
 public class HostComp extends ComponentDefinition {
 
     private Logger logger = LoggerFactory.getLogger(HostComp.class);
-    private static final int BIND_RETRY =3;
+    private static final int BIND_RETRY = 3;
+    private static final int MAX_SNAPSHOTS = 100;
 
     private Component globalAggregator;
     private Component visualizer;
@@ -140,6 +145,8 @@ public class HostComp extends ComponentDefinition {
      */
     private void initiatePhase2() {
 
+        logger.debug("Initiating the second phase of launch.");
+
         buildSysConfig();
         connectNetwork();
 
@@ -154,17 +161,36 @@ public class HostComp extends ComponentDefinition {
      */
     private void initiatePhase3() {
 
+        logger.debug("Initiating the third phase of launch");
+
         globalAggregator = create(GlobalAggregator.class, new GlobalAggregatorInit(5000));
         trigger(Start.event, globalAggregator.control());
 
-//      FIX ME: Set the map for the designer information.
-        visualizer = create(Visualizer.class, new VisualizerInit(100, null));
+        Map<String, DesignProcessor> processorMap = getDesignerProcessMap();
+        visualizer = create(Visualizer.class, new VisualizerInit(MAX_SNAPSHOTS, processorMap));
         trigger(Start.event, visualizer.control());
 
         connect(globalAggregator.getNegative(Timer.class), timer.getPositive(Timer.class));
         connect(globalAggregator.getNegative(Network.class), network.getPositive(Network.class));
         connect(globalAggregator.getPositive(GlobalAggregatorPort.class), visualizer.getNegative(GlobalAggregatorPort.class));
 
+    }
+
+
+    /**
+     * Get the designer processor map which will indicate the information
+     * regarding design processor to be used.
+     *
+     * @return map.
+     */
+    public Map<String, DesignProcessor> getDesignerProcessMap() {
+
+        Map<String, DesignProcessor> map = new HashMap<String, DesignProcessor>();
+        for(DesignerEnum designerEnum : DesignerEnum.values()){
+            map.put(designerEnum.getName(), designerEnum.getProcessor());
+        }
+
+        return map;
     }
 
 
