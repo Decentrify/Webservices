@@ -16,7 +16,12 @@ import org.slf4j.LoggerFactory;
  */
 public class VisualizerWS  extends Service<Configuration>{
 
-    Logger logger = LoggerFactory.getLogger(VisualizerWS.class);
+    private Logger logger = LoggerFactory.getLogger(VisualizerWS.class);
+    private VisualizerSyncI visualizerSyncI;
+
+    public VisualizerWS(VisualizerSyncI syncI){
+        this.visualizerSyncI = syncI;
+    }
 
     @Override
     public void initialize(Bootstrap<Configuration> bootstrap) {
@@ -28,11 +33,10 @@ public class VisualizerWS  extends Service<Configuration>{
 
         logger.debug("environment configuration setup and registering the rest calls.");
 
-
         logger.debug("Initiating with the registering of the REST Calls.");
 
-        environment.addProvider(new VisualizerRESTMsgs.AggregatedInternalState());
-        environment.addProvider(new VisualizerRESTMsgs.AvgSearchResponse());
+        environment.addProvider(new VisualizerRESTMsgs.AggregatedInternalState(this.visualizerSyncI));
+        environment.addProvider(new VisualizerRESTMsgs.AvgSearchResponse(this.visualizerSyncI));
 
         logger.debug("Enabling the Cross Origin Request.");
         /*
