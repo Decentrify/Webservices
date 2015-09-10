@@ -19,6 +19,8 @@
         <global.aggregator.version>1.0-SNAPSHOT</global.aggregator.version>
         <search.application.version>1.3-SNAPSHOT</search.application.version>
         <ipsolver.version>1.1-SNAPSHOT</ipsolver.version>
+        <dropwizard.version>0.6.2</dropwizard.version>
+        <jetty.version>8.1.10.v20130312</jetty.version>
     </properties>
 
     <dependencies>
@@ -45,6 +47,18 @@
                     <artifactId>slf4j-log4j12</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>com.yammer.dropwizard</groupId>
+            <artifactId>dropwizard-core</artifactId>
+            <version>${dropwizard.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-servlets</artifactId>
+            <version>${jetty.version}</version>
         </dependency>
 
     </dependencies>
