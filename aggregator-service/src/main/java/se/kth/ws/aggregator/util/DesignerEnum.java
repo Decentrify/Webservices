@@ -1,6 +1,7 @@
 package se.kth.ws.aggregator.util;
 
 import se.sics.ktoolbox.aggregator.global.api.system.DesignProcessor;
+import se.sics.ms.aggregator.processor.InternalStateDesignProcessor;
 import se.sics.ms.aggregator.processor.SearchRespDesignProcessor;
 
 /**
@@ -10,7 +11,8 @@ import se.sics.ms.aggregator.processor.SearchRespDesignProcessor;
  */
 public enum DesignerEnum {
 
-    AvgSearchResponse("avgSearchResponse", new SearchRespDesignProcessor());
+    AvgSearchResponse("avgSearchResponse", new SearchRespDesignProcessor()),
+    AggInternalState("aggregatedInternalState", new InternalStateDesignProcessor());
 
     private String name;
     private DesignProcessor processor;
