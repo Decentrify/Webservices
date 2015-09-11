@@ -1,15 +1,12 @@
 package se.kth.ws.aggregator.ws;
 
 import com.google.common.util.concurrent.SettableFuture;
-import com.sun.jersey.core.header.MediaTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.kth.ws.aggregator.ws.model.InternalStateJSON;
-import se.kth.ws.sweep.core.SweepSyncI;
 import se.kth.ws.sweep.core.util.Result;
-import se.sics.ms.aggregator.design.AggregatedInternalState;
-import se.sics.ms.aggregator.design.AggregatedInternalStateContainer;
-import se.sics.ms.aggregator.packets.InternalStatePacket;
+import se.sics.ms.data.aggregator.design.AggregatedInternalStateContainer;
+import se.sics.ms.data.aggregator.packets.InternalStatePacket;
 import se.sics.ws.sweep.util.ResponseStatusWSMapper;
 
 import javax.ws.rs.GET;
@@ -76,7 +73,7 @@ public class VisualizerRESTMsgs {
         private Collection<InternalStateJSON> processIntermediateResult(AggregatedInternalStateContainer container){
 
             Collection<InternalStateJSON> result = new ArrayList<InternalStateJSON>();
-            Collection<se.sics.ms.aggregator.design.AggregatedInternalState> aggInternalStates = container.getProcessedWindows();
+            Collection<se.sics.ms.data.aggregator.design.AggregatedInternalState> aggInternalStates = container.getProcessedWindows();
 
             if(!aggInternalStates.iterator().hasNext()){
                 return result;
@@ -84,7 +81,7 @@ public class VisualizerRESTMsgs {
 
 //          Only concerned with the last packet, don't care about the others.
 
-            se.sics.ms.aggregator.design.AggregatedInternalState internalState = aggInternalStates.iterator().next();
+            se.sics.ms.data.aggregator.design.AggregatedInternalState internalState = aggInternalStates.iterator().next();
             Collection<InternalStatePacket> statePackets = internalState.getInternalStatePackets();
 
             for(InternalStatePacket packet : statePackets){

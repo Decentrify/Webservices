@@ -22,6 +22,7 @@
         <dropwizard.version>0.6.2</dropwizard.version>
         <jetty.version>8.1.10.v20130312</jetty.version>
         <sweep.version>2.2.1-SNAPSHOT</sweep.version>
+        <gvodws.version>2.2.1-SNAPSHOT</gvodws.version>
     </properties>
 
     <dependencies>
@@ -69,6 +70,12 @@
             <version>${jetty.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>se.kth.ws</groupId>
+            <artifactId>gvod</artifactId>
+            <version>${gvodws.version}</version>
+        </dependency>
+        
         <dependency>
             <groupId>se.kth.ws</groupId>
             <artifactId>sweep</artifactId>

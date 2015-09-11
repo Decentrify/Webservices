@@ -6,6 +6,8 @@ import com.typesafe.config.ConfigFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.kth.ws.aggregator.util.DesignerEnum;
+import se.sics.caracaldb.MessageRegistrator;
+import se.sics.gvod.network.GVoDSerializerSetup;
 import se.sics.kompics.*;
 import se.sics.kompics.network.Network;
 import se.sics.kompics.network.netty.NettyInit;
@@ -23,8 +25,15 @@ import se.sics.ktoolbox.ipsolver.IpSolverComp;
 import se.sics.ktoolbox.ipsolver.IpSolverPort;
 import se.sics.ktoolbox.ipsolver.msg.GetIp;
 import se.sics.ms.configuration.MsConfig;
+import se.sics.ms.net.SerializerSetup;
+import se.sics.p2ptoolbox.aggregator.network.AggregatorSerializerSetup;
+import se.sics.p2ptoolbox.chunkmanager.ChunkManagerSerializerSetup;
+import se.sics.p2ptoolbox.croupier.CroupierSerializerSetup;
+import se.sics.p2ptoolbox.election.network.ElectionSerializerSetup;
+import se.sics.p2ptoolbox.gradient.GradientSerializerSetup;
 import se.sics.p2ptoolbox.util.config.SystemConfig;
 import se.sics.p2ptoolbox.util.helper.SystemConfigBuilder;
+import se.sics.p2ptoolbox.util.serializer.BasicSerializerSetup;
 
 import java.net.*;
 import java.util.EnumSet;
@@ -86,6 +95,22 @@ public class VisualizerLauncher extends ComponentDefinition{
     }
 
 
+
+    private void registerSerializers() {
+        MessageRegistrator.register();
+        int currentId = 128;
+        currentId = BasicSerializerSetup.registerBasicSerializers(currentId);
+        currentId = CroupierSerializerSetup.registerSerializers(currentId);
+        currentId = GradientSerializerSetup.registerSerializers(currentId);
+        currentId = ElectionSerializerSetup.registerSerializers(currentId);
+        currentId = AggregatorSerializerSetup.registerSerializers(currentId);
+        currentId = ChunkManagerSerializerSetup.registerSerializers(currentId);
+        currentId = SerializerSetup.registerSerializers(currentId);
+        currentId = GVoDSerializerSetup.registerSerializers(currentId);
+    }
+    
+    
+    
     /**
      * 
      */

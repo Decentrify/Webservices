@@ -8,7 +8,7 @@ import se.kth.ws.sweep.core.util.Result;
 import se.sics.kompics.*;
 import se.sics.ktoolbox.aggregator.global.api.event.WindowProcessing;
 import se.sics.ktoolbox.aggregator.global.api.ports.VisualizerPort;
-import se.sics.ms.aggregator.design.AggregatedInternalStateContainer;
+import se.sics.ms.data.aggregator.design.AggregatedInternalStateContainer;
 
 import java.util.UUID;
 
