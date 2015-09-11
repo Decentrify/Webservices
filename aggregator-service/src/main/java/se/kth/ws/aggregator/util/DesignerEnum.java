@@ -4,6 +4,9 @@ import se.sics.ktoolbox.aggregator.global.api.system.DesignProcessor;
 import se.sics.ms.aggregator.processor.InternalStateDesignProcessor;
 import se.sics.ms.aggregator.processor.SearchRespDesignProcessor;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Enum related to the design processor.
  *

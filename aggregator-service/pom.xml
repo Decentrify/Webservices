@@ -30,13 +30,20 @@
             <groupId>se.sics.ktoolbox.aggregator.global</groupId>
             <artifactId>aggregator-core</artifactId>
             <version>${global.aggregator.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                
+            </exclusions>
         </dependency>
 
-        <dependency>
-            <groupId>se.kth.ms</groupId>
-            <artifactId>ms-search</artifactId>
-            <version>${search.application.version}</version>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>se.kth.ms</groupId>-->
+            <!--<artifactId>ms-search</artifactId>-->
+            <!--<version>${search.application.version}</version>-->
+        <!--</dependency>-->
 
         <dependency>
             <groupId>se.sics.ktoolbox.ipsolver</groupId>
@@ -66,6 +73,12 @@
             <groupId>se.kth.ws</groupId>
             <artifactId>sweep</artifactId>
             <version>${sweep.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
 
