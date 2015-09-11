@@ -113,7 +113,7 @@ public class VisualizerRESTMsgs {
         }
 
         @GET
-        public Response getAvgSearchResponse(VisualizerSyncI syncI){
+        public Response getAvgSearchResponse(){
 
             logger.debug("Initiated a call to fetch the average search response.");
             return null;

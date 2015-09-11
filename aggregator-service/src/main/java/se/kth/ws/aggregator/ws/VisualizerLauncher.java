@@ -1,6 +1,7 @@
 package se.kth.ws.aggregator.ws;
 
 import com.typesafe.config.Config;
+import com.typesafe.config.ConfigException;
 import com.typesafe.config.ConfigFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,11 +44,14 @@ public class VisualizerLauncher extends ComponentDefinition{
     private Socket socket;
     private Component aggregator;
     private Component visualizer;
-    private Component visualizerSyncI;
-
+    private Component visualizerSyncComp;
+    private VisualizerSyncI visualizerSyncI;
+    private VisualizerWS visualizerWS;
+    
     private Component timer;
     private Component network;
 
+    private Config config;
     private SystemConfigBuilder builder;
     private SystemConfig systemConfig;
     
@@ -112,7 +116,7 @@ public class VisualizerLauncher extends ComponentDefinition{
                 }
             }
 
-            Config config = ConfigFactory.load();
+            config = ConfigFactory.load();
             builder = new SystemConfigBuilder(config).setSelfIp(ip);
             
             initiatingPhase2();
@@ -177,19 +181,24 @@ public class VisualizerLauncher extends ComponentDefinition{
 
         aggregator = create(GlobalAggregator.class, new GlobalAggregatorInit(MsConfig.LOCAL_AGGREGATOR_TIMEOUT));
         visualizer = create(Visualizer.class, new VisualizerInit(maxSnapShots, processorMap));
-        
-        visualizerSyncI = create(VisualizerSyncComponent.class, Init.NONE);
+
+        visualizerSyncComp = create(VisualizerSyncComponent.class, Init.NONE);
+        visualizerSyncI = (VisualizerSyncI) visualizerSyncComp.getComponent();
         
         connect(aggregator.getNegative(Timer.class), timer.getPositive(Timer.class));
         connect(aggregator.getNegative(Network.class), network.getPositive(Network.class));
         
         connect(visualizer.getNegative(GlobalAggregatorPort.class), aggregator.getPositive(GlobalAggregatorPort.class));
-        connect(visualizerSyncI.getNegative(VisualizerPort.class), visualizer.getPositive(VisualizerPort.class));
+        connect(visualizerSyncComp.getNegative(VisualizerPort.class), visualizer.getPositive(VisualizerPort.class));
         
-        trigger(Start.event, visualizerSyncI.control());
+        trigger(Start.event, visualizerSyncComp.control());
         trigger(Start.event, aggregator.getControl());
         trigger(Start.event, visualizer.getControl());
 
+        
+        
+//      Finally Start the webservice.
+        startWebservice();
     }
 
     private Map<String, DesignProcessor> getDesignProcessorMap(){
@@ -203,6 +212,25 @@ public class VisualizerLauncher extends ComponentDefinition{
     }
 
 
+    private void startWebservice() {
+
+        logger.info("starting webservice");
+
+        try {
+            visualizerWS = new VisualizerWS(visualizerSyncI);
+            String[] args = new String[]{"server", config.getString("webservice.server")};
+
+            visualizerWS.run(args);
+        } catch (ConfigException.Missing ex) {
+            logger.error("bad configuration, could not find webservice.server");
+            throw new RuntimeException(ex);
+        } catch (Exception ex) {
+            logger.error("webservice error");
+            throw new RuntimeException(ex);
+        }
+    }
+    
+    
     public static void main(String[] args) {
         
         logger.debug("Initiating with the running of the component.");
