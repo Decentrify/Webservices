@@ -27,6 +27,7 @@ logging:
     "se.sics.gvod.core.downloadMngr.DownloadMngrComp": INFO
     "se.sics.gvod.manager.VoDManager": INFO
     "se.sics.p2ptoolbox.election.core.ElectionLeader": WARN
+    "se.sics.ktoolbox.aggregator.global.core.GlobalAggregator": DEBUG
   console:
       enabled: true
 

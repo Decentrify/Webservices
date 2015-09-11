@@ -21,12 +21,12 @@ import se.sics.ktoolbox.aggregator.global.core.GlobalAggregator;
 import se.sics.ktoolbox.aggregator.global.core.GlobalAggregatorInit;
 import se.sics.ktoolbox.aggregator.global.core.Visualizer;
 import se.sics.ktoolbox.aggregator.global.core.VisualizerInit;
+import se.sics.ktoolbox.aggregator.global.network.AggregatorSerializerSetup;
 import se.sics.ktoolbox.ipsolver.IpSolverComp;
 import se.sics.ktoolbox.ipsolver.IpSolverPort;
 import se.sics.ktoolbox.ipsolver.msg.GetIp;
 import se.sics.ms.configuration.MsConfig;
 import se.sics.ms.net.SerializerSetup;
-import se.sics.p2ptoolbox.aggregator.network.AggregatorSerializerSetup;
 import se.sics.p2ptoolbox.chunkmanager.ChunkManagerSerializerSetup;
 import se.sics.p2ptoolbox.croupier.CroupierSerializerSetup;
 import se.sics.p2ptoolbox.election.network.ElectionSerializerSetup;
@@ -88,9 +88,14 @@ public class VisualizerLauncher extends ComponentDefinition{
     /**
      * Trigger start to the components.
      */
-    private void doStart(){
+    private void doStart() {
 
         logger.debug("Creating child components.");
+
+//      Register the serializers on the system.
+        registerSerializers();
+
+//      Initiating the initial phase of the launch.
         initiatingPhase1();
     }
 
