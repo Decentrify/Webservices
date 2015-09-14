@@ -87,7 +87,7 @@ public class VisualizerRESTMsgs {
             for(InternalStatePacket packet : statePackets){
 
                 InternalStateJSON internalStateJSON = new InternalStateJSON( packet.getPartitionId(),
-                        packet.getPartitionDepth(), packet.getLeaderAddress().getId());
+                        packet.getPartitionDepth(), packet.getNumEntries(),  packet.getLeaderAddress() == null ? null : packet.getLeaderAddress().getId());
 
                 result.add(internalStateJSON);
             }

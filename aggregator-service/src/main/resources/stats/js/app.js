@@ -13,7 +13,11 @@
                 })
                 .when('/aggregatedInfo',
                 {
-                    templateUrl:'partials/internalAggregatedInfo.html'
+
+                    templateUrl:'partials/internalAggregatedInfo.html',
+                    controller: 'AggregatedStateController',
+                    controllerAs: 'aggregatedStateController'
+
                 })
                 .when('/searchResponse',
                 {

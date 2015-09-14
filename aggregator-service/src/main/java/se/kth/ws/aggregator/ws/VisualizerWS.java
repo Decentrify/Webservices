@@ -1,6 +1,7 @@
 package se.kth.ws.aggregator.ws;
 
 import com.yammer.dropwizard.Service;
+import com.yammer.dropwizard.assets.AssetsBundle;
 import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.config.Configuration;
 import com.yammer.dropwizard.config.Environment;
@@ -26,13 +27,13 @@ public class VisualizerWS  extends Service<Configuration>{
     @Override
     public void initialize(Bootstrap<Configuration> bootstrap) {
         logger.debug("time to run any initialization code.");
+        bootstrap.addBundle(new AssetsBundle("/stats/", "/webapp/"));
     }
 
     @Override
     public void run(Configuration configuration, Environment environment) throws Exception {
 
         logger.debug("environment configuration setup and registering the rest calls.");
-
         logger.debug("Initiating with the registering of the REST Calls.");
 
         environment.addProvider(new VisualizerRESTMsgs.AggregatedInternalState(this.visualizerSyncI));

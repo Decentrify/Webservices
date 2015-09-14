@@ -8,28 +8,33 @@ package se.kth.ws.aggregator.ws.model;
  */
 public class InternalStateJSON {
 
-    public int partitionId;
-    public int partitionDepth;
-    public int leaderId;
+    public Integer partitionId;
+    public Integer partitionDepth;
+    public Long numEntries;
+    public Integer leaderId;
 
-    public InternalStateJSON(int partitionId, int partitionDepth, int leaderId) {
+    public InternalStateJSON(Integer partitionId, Integer partitionDepth, Long numEntries, Integer leaderId) {
 
         this.partitionId = partitionId;
         this.partitionDepth = partitionDepth;
+        this.numEntries = numEntries;
         this.leaderId = leaderId;
     }
 
 
+    public Long getNumEntries() {
+        return numEntries;
+    }
 
-    public int getPartitionId() {
+    public Integer getPartitionId() {
         return partitionId;
     }
 
-    public int getPartitionDepth() {
+    public Integer getPartitionDepth() {
         return partitionDepth;
     }
 
-    public int getLeaderId() {
+    public Integer getLeaderId() {
         return leaderId;
     }
 }

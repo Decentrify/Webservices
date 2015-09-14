@@ -1,6 +1,6 @@
 http:
-  port: 29190
-  adminPort: 29191
+  port: 39190
+  adminPort: 39191
   gzip:
     enabled: false
 
