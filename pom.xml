@@ -6,9 +6,12 @@
   <version>2.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Webservices</name>
+
   <modules>
-    <module>sweep</module>
-    <module>gvod</module>
-    <module>dy</module>
+      <module>sweep</module>
+      <module>gvod</module>
+      <module>dy</module>
+      <module>aggregator-service</module>
   </modules>
+
 </project>
