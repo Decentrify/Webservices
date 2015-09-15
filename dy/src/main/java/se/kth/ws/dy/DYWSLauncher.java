@@ -251,24 +251,17 @@ public class DYWSLauncher extends ComponentDefinition {
 
                     @Override
                     public SCNetworkHook.InitResult setUp(ComponentProxy proxy, SCNetworkHook.Init hookInit) {
-                        Component[] comp = new Component[2];
+                        Component[] comp = new Component[1];
                         //network
                         comp[0] = proxy.create(NettyNetwork.class, new NettyInit(hookInit.adr));
                         proxy.trigger(Start.event, comp[0].control());
-                        //chunkmanager
-                        comp[1] = proxy.create(ChunkManagerComp.class, new ChunkManagerComp.CMInit(systemConfig, new ChunkManagerConfig(systemConfig.config)));
-                        proxy.connect(comp[1].getNegative(Network.class), comp[0].getPositive(Network.class));
-                        proxy.connect(comp[1].getNegative(Timer.class), hookInit.timer);
-                        proxy.trigger(Start.event, comp[1].control());
-                        return new SCNetworkHook.InitResult(comp[1].getPositive(Network.class), comp);
+                       
+                        return new SCNetworkHook.InitResult(comp[0].getPositive(Network.class), comp);
                     }
 
                     @Override
                     public void tearDown(ComponentProxy proxy, SCNetworkHook.Tear hookTear) {
                         proxy.trigger(Stop.event, hookTear.components[0].control());
-                        proxy.trigger(Stop.event, hookTear.components[1].control());
-                        proxy.disconnect(hookTear.components[1].getNegative(Network.class), hookTear.components[0].getPositive(Network.class));
-                        proxy.disconnect(hookTear.components[1].getNegative(Timer.class), hookTear.timer);
                     }
                 }));
 
@@ -405,14 +398,24 @@ public class DYWSLauncher extends ComponentDefinition {
                             System.setProperty("altBindIf", localIp.getHostAddress());
                         }
                         LOG.info("{}binding on public:{}", new Object[]{logPrefix, hookInit.adr});
+                        //network
                         comp[0] = proxy.create(NettyNetwork.class, new NettyInit(hookInit.adr));
                         proxy.trigger(Start.event, comp[0].control());
-                        return new NatNetworkHook.InitResult(comp[0].getPositive(Network.class), comp);
+                        
+                         //chunkmanager
+                        comp[1] = proxy.create(ChunkManagerComp.class, new ChunkManagerComp.CMInit(systemConfig, new ChunkManagerConfig(systemConfig.config)));
+                        proxy.connect(comp[1].getNegative(Network.class), comp[0].getPositive(Network.class));
+                        proxy.connect(comp[1].getNegative(Timer.class), hookInit.timer);
+                        proxy.trigger(Start.event, comp[1].control());
+                        return new NatNetworkHook.InitResult(comp[1].getPositive(Network.class), comp);
                     }
 
                     @Override
                     public void tearDown(ComponentProxy proxy, NatNetworkHook.Tear hookTear) {
                         proxy.trigger(Stop.event, hookTear.components[0].control());
+                        proxy.trigger(Stop.event, hookTear.components[1].control());
+                        proxy.disconnect(hookTear.components[1].getNegative(Network.class), hookTear.components[0].getPositive(Network.class));
+                        proxy.disconnect(hookTear.components[1].getNegative(Timer.class), hookTear.timer);
                     }
 
                 },
