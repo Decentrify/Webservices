@@ -14,4 +14,62 @@
       <module>aggregator-service</module>
   </modules>
 
+    <properties>
+        <java.version>1.7</java.version>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        
+        <kompics.version>0.8.2-SNAPSHOT</kompics.version>
+        <nat.version>0.0.1-SNAPSHOT</nat.version>
+        <chunkmanager.version>1.3-SNAPSHOT</chunkmanager.version>
+        <sweep.version>1.3-SNAPSHOT</sweep.version>
+        <gvod.version>0.0.7-SNAPSHOT</gvod.version>
+        
+        <dropwizard.version>0.6.2</dropwizard.version>
+        <jetty.version>8.1.10.v20130312</jetty.version>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>se.sics.kompics</groupId>
+            <artifactId>kompics-core</artifactId>
+            <version>${kompics.version}</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.yammer.dropwizard</groupId>
+            <artifactId>dropwizard-core</artifactId>
+            <version>${dropwizard.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-servlets</artifactId>
+            <version>${jetty.version}</version>
+        </dependency>
+    </dependencies>
+  
+    <repositories>
+        <repository>
+            <id>sics-release</id>
+            <name>SICS Release Repository</name>
+            <url>http://kompics.sics.se/maven/repository</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>sics-snapshot</id>
+            <name>SICS Snapshot Repository</name>
+            <url>http://kompics.sics.se/maven/snapshotrepository</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 </project>

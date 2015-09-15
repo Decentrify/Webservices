@@ -14,11 +14,26 @@
     <url>http://maven.apache.org</url>
   
     <properties>
-        <sweepws-version>2.2.1-SNAPSHOT</sweepws-version>
-        <gvodws-version>2.2.1-SNAPSHOT</gvodws-version>
+        <sweepws-version>2.2.2-SNAPSHOT</sweepws-version>
+        <gvodws-version>2.2.2-SNAPSHOT</gvodws-version>
     </properties>
   
     <dependencies>
+        <dependency>
+            <groupId>se.sics.nat</groupId>
+            <artifactId>core</artifactId>
+            <version>${nat.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>se.sics.nat</groupId>
+            <artifactId>network</artifactId>
+            <version>${nat.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>se.sics.ktoolbox.cm</groupId>
+            <artifactId>cm-core</artifactId>
+            <version>${chunkmanager.version}</version>
+        </dependency>
         <dependency>
             <groupId>se.kth.ws</groupId>
             <artifactId>sweep</artifactId>

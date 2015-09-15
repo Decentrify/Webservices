@@ -19,9 +19,6 @@
 package se.kth.ws.dy;
 
 import com.google.common.util.concurrent.SettableFuture;
-import org.eclipse.jetty.server.Connector;
-import org.eclipse.jetty.server.Server;
-import se.kth.ws.sweep.core.SweepSyncI;
 import com.yammer.dropwizard.Service;
 import com.yammer.dropwizard.assets.AssetsBundle;
 import com.yammer.dropwizard.config.Bootstrap;
@@ -38,12 +35,12 @@ import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.kth.ws.gvod.GVoDRESTMsgs;
-import se.kth.ws.sweep.SweepRESTMsgs;
-import se.kth.ws.util.BareBonesBrowserLaunch;
 import se.kth.ws.util.TrayUI;
 import se.sics.gvod.manager.toolbox.GVoDSyncI;
 
 import javax.swing.*;
+import se.kth.ws.sweep.SweepRESTMsgs;
+import se.kth.ws.sweep.core.SweepSyncI;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>
@@ -96,7 +93,7 @@ public class DYWS extends Service<Configuration> {
         environment.addProvider(new GVoDRESTMsgs.StopVideoResource(gvodSyncI));
 
 //      Special status handling of the caracal message.
-        serverStatus  = new GVoDRESTMsgs.GetCaracalStatus();
+        serverStatus = new GVoDRESTMsgs.GetCaracalStatus();
         environment.addProvider(serverStatus);
 
         /*
@@ -123,18 +120,16 @@ public class DYWS extends Service<Configuration> {
         LOG.error("After WebPort ~~~~~~ ");
     }
 
-
     /**
      * Launch the tray icon in the system.
      */
-    private void launchTray(final int port){
+    private void launchTray(final int port) {
 
         if (SystemTray.isSupported()) {
 
             LOG.debug("Invoking the tray now ... ");
             trayUi = new TrayUI(createImage("src/main/resources/icons/dy.png", "tray icon"), port);
-        }
-        else{
+        } else {
             LOG.debug("@@@@@ Well This is embarrassing ... ");
         }
 
@@ -146,7 +141,7 @@ public class DYWS extends Service<Configuration> {
 
                     LOG.error("Going to bootup the page after 1500 ms");
                     Thread.sleep(1500);
-                    openWebpage(new URL("http://localhost:"+ port+ "/webapp/"));
+                    openWebpage(new URL("http://localhost:" + port + "/webapp/"));
 
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -190,15 +185,13 @@ public class DYWS extends Service<Configuration> {
         }
     }
 
-
     /**
-     * Change the caracal server status.
-     * This will affect the capability of the application
-     * to upload / download videos.
+     * Change the caracal server status. This will affect the capability of the
+     * application to upload / download videos.
      *
      * @param status
      */
-    public void setIsServerDown(boolean status){
+    public void setIsServerDown(boolean status) {
 
         LOG.debug("Component indicating to change the status of the server.");
         serverStatus.setIsServerDown(status);

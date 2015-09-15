@@ -21,6 +21,7 @@ package se.sics.ws.sweep.model;
 import se.sics.ms.configuration.MsConfig;
 import se.sics.ms.types.IndexEntry;
 
+
 /**
  * @author Alex Ormenisan <aaor@kth.se>
  */

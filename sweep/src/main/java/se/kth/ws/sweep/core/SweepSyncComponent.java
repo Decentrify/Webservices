@@ -20,11 +20,9 @@
 package se.kth.ws.sweep.core;
 
 import com.google.common.util.concurrent.SettableFuture;
-import java.util.ArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.kth.ws.sweep.core.util.Result;
-import se.sics.kompics.Component;
 import se.sics.kompics.Component.State;
 import se.sics.kompics.ComponentDefinition;
 import se.sics.kompics.Handler;
@@ -36,7 +34,6 @@ import se.sics.ms.events.UiAddIndexEntryResponse;
 import se.sics.ms.events.UiSearchRequest;
 import se.sics.ms.events.UiSearchResponse;
 import se.sics.ms.ports.UiPort;
-import se.sics.ms.types.ApplicationEntry;
 import se.sics.ms.types.IndexEntry;
 import se.sics.ms.types.SearchPattern;
 import se.sics.ms.util.PaginateInfo;
@@ -118,19 +115,16 @@ public class SweepSyncComponent extends ComponentDefinition implements SweepSync
         pendingJob = opFuture;
 
         PaginateInfo paginateInfo = new PaginateInfo(paginationJSON.getFrom(), paginationJSON.getSize());
-        se.sics.ms.events.paginateAware.UiSearchRequest paginateAwareRequest = new se.sics.ms.events.paginateAware.UiSearchRequest(searchPattern, paginateInfo);
+        UiSearchRequest paginateAwareRequest = new UiSearchRequest(searchPattern, paginateInfo);
         trigger(paginateAwareRequest, sweep);
     }
 
-    private Handler<se.sics.ms.events.paginateAware.UiSearchResponse> handleSearchResponse = new Handler<se.sics.ms.events.paginateAware.UiSearchResponse>() {
+    private Handler<UiSearchResponse> handleSearchResponse = new Handler<UiSearchResponse>() {
         @Override
-        public void handle(se.sics.ms.events.paginateAware.UiSearchResponse response) {
-
+        public void handle(UiSearchResponse response) {
             LOG.debug("received search response");
             pendingJob.set(Result.ok(response));
             pendingJob = null;
         }
     };
-
-
 }    
