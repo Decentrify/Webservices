@@ -1,8 +1,8 @@
 package se.kth.ws.aggregator.util;
 
 import se.sics.ktoolbox.aggregator.server.util.DesignProcessor;
-import se.sics.ms.data.aggregator.processor.InternalStateDesignProcessor;
-import se.sics.ms.data.aggregator.processor.SearchRespDesignProcessor;
+import se.sics.ms.aggregator.processor.InternalStateDesignProcessor;
+import se.sics.ms.aggregator.processor.SearchRespDesignProcessor;
 
 /**
  * Enum related to the design processor.

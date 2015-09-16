@@ -52,7 +52,7 @@ import se.sics.ktoolbox.cc.heartbeat.CCHeartbeatPort;
 import se.sics.ktoolbox.ipsolver.IpSolverComp;
 import se.sics.ktoolbox.ipsolver.IpSolverPort;
 import se.sics.ktoolbox.ipsolver.msg.GetIp;
-import se.sics.ms.net.SerializerSetup;
+import se.sics.ms.net.SweepSerializerSetup;
 import se.sics.ms.ports.UiPort;
 import se.sics.ms.search.SearchPeer;
 import se.sics.ms.search.SearchPeerInit;
@@ -543,7 +543,7 @@ public class DYWSLauncher extends ComponentDefinition {
         serializerId = ElectionSerializerSetup.registerSerializers(serializerId);
         serializerId = AggregatorSerializerSetup.registerSerializers(serializerId);
         serializerId = ChunkManagerSerializerSetup.registerSerializers(serializerId);
-        serializerId = SerializerSetup.registerSerializers(serializerId);
+        serializerId = SweepSerializerSetup.registerSerializers(serializerId);
         serializerId = GVoDSerializerSetup.registerSerializers(serializerId);
 
         if (serializerId > 255) {

@@ -2,7 +2,7 @@ package se.kth.ws.aggregator.ws;
 
 import com.google.common.util.concurrent.SettableFuture;
 import se.kth.ws.sweep.core.util.Result;
-import se.sics.ms.data.aggregator.design.AggregatedInternalStateContainer;
+import se.sics.ms.aggregator.design.AggregatedInternalStateContainer;
 
 /**
  * Visualizer Synchronous Interface.

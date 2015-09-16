@@ -18,7 +18,7 @@ import se.sics.ktoolbox.ipsolver.IpSolverComp;
 import se.sics.ktoolbox.ipsolver.IpSolverPort;
 import se.sics.ktoolbox.ipsolver.msg.GetIp;
 import se.sics.ms.configuration.MsConfig;
-import se.sics.ms.net.SerializerSetup;
+import se.sics.ms.net.SweepSerializerSetup;
 import se.sics.p2ptoolbox.chunkmanager.ChunkManagerSerializerSetup;
 import se.sics.p2ptoolbox.croupier.CroupierSerializerSetup;
 import se.sics.p2ptoolbox.election.network.ElectionSerializerSetup;
@@ -110,7 +110,7 @@ public class VisualizerLauncher extends ComponentDefinition{
         currentId = ElectionSerializerSetup.registerSerializers(currentId);
         currentId = AggregatorSerializerSetup.registerSerializers(currentId);
         currentId = ChunkManagerSerializerSetup.registerSerializers(currentId);
-        currentId = SerializerSetup.registerSerializers(currentId);
+        currentId = SweepSerializerSetup.registerSerializers(currentId);
         currentId = GVoDSerializerSetup.registerSerializers(currentId);
     }
     
