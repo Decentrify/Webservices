@@ -12,44 +12,19 @@
 
     <groupId>se.kth.ws</groupId>
     <artifactId>aggregator-service</artifactId>
-    <version>1.0-SNAPSHOT</version>
-
+    <version>1.0.0-SNAPSHOT</version>
+    <name>Aggregator WS</name>
 
     <properties>
-        <global.aggregator.version>1.0-SNAPSHOT</global.aggregator.version>
-        <search.application.version>1.3-SNAPSHOT</search.application.version>
-        <ipsolver.version>1.1-SNAPSHOT</ipsolver.version>
-        <dropwizard.version>0.6.2</dropwizard.version>
-        <jetty.version>8.1.10.v20130312</jetty.version>
-        <sweep.version>2.2.1-SNAPSHOT</sweep.version>
-        <gvodws.version>2.2.1-SNAPSHOT</gvodws.version>
+        <sweepws.version>2.2.2-SNAPSHOT</sweepws.version>
+        <gvodws.version>2.2.2-SNAPSHOT</gvodws.version>
     </properties>
-
+    
     <dependencies>
-
         <dependency>
-            <groupId>se.sics.ktoolbox.aggregator.global</groupId>
-            <artifactId>aggregator-core</artifactId>
-            <version>${global.aggregator.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-                
-            </exclusions>
-        </dependency>
-
-        <!--<dependency>-->
-            <!--<groupId>se.kth.ms</groupId>-->
-            <!--<artifactId>ms-search</artifactId>-->
-            <!--<version>${search.application.version}</version>-->
-        <!--</dependency>-->
-
-        <dependency>
-            <groupId>se.sics.ktoolbox.ipsolver</groupId>
+            <groupId>se.sics.ktoolbox.aggregator.server</groupId>
             <artifactId>core</artifactId>
-            <version>${ipsolver.version}</version>
+            <version>${aggregator.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -79,7 +54,7 @@
         <dependency>
             <groupId>se.kth.ws</groupId>
             <artifactId>sweep</artifactId>
-            <version>${sweep.version}</version>
+            <version>${sweepws.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -87,10 +62,10 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
-
+        <dependency>
+            <groupId>se.sics.ms</groupId>
+            <artifactId>netty</artifactId>
+            <version>${sweep.version}</version>
+        </dependency>
     </dependencies>
-
-
-
 </project>

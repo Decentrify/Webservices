@@ -8,3 +8,4 @@
 /gvod/lib/
 /lib/
 *.gz
+/aggregator-service/target/

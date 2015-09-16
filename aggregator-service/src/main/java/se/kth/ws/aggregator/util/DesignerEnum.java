@@ -1,11 +1,8 @@
 package se.kth.ws.aggregator.util;
 
-import se.sics.ktoolbox.aggregator.global.api.system.DesignProcessor;
+import se.sics.ktoolbox.aggregator.server.util.DesignProcessor;
 import se.sics.ms.data.aggregator.processor.InternalStateDesignProcessor;
 import se.sics.ms.data.aggregator.processor.SearchRespDesignProcessor;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Enum related to the design processor.

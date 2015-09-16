@@ -14,14 +14,6 @@ import se.sics.kompics.network.netty.NettyInit;
 import se.sics.kompics.network.netty.NettyNetwork;
 import se.sics.kompics.timer.Timer;
 import se.sics.kompics.timer.java.JavaTimer;
-import se.sics.ktoolbox.aggregator.global.api.ports.GlobalAggregatorPort;
-import se.sics.ktoolbox.aggregator.global.api.ports.VisualizerPort;
-import se.sics.ktoolbox.aggregator.global.api.system.DesignProcessor;
-import se.sics.ktoolbox.aggregator.global.core.GlobalAggregator;
-import se.sics.ktoolbox.aggregator.global.core.GlobalAggregatorInit;
-import se.sics.ktoolbox.aggregator.global.core.Visualizer;
-import se.sics.ktoolbox.aggregator.global.core.VisualizerInit;
-import se.sics.ktoolbox.aggregator.global.network.AggregatorSerializerSetup;
 import se.sics.ktoolbox.ipsolver.IpSolverComp;
 import se.sics.ktoolbox.ipsolver.IpSolverPort;
 import se.sics.ktoolbox.ipsolver.msg.GetIp;
@@ -39,6 +31,14 @@ import java.net.*;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
+import se.sics.ktoolbox.aggregator.AggregatorSerializerSetup;
+import se.sics.ktoolbox.aggregator.server.GlobalAggregator;
+import se.sics.ktoolbox.aggregator.server.GlobalAggregatorInit;
+import se.sics.ktoolbox.aggregator.server.GlobalAggregatorPort;
+import se.sics.ktoolbox.aggregator.server.Visualizer;
+import se.sics.ktoolbox.aggregator.server.VisualizerInit;
+import se.sics.ktoolbox.aggregator.server.VisualizerPort;
+import se.sics.ktoolbox.aggregator.server.util.DesignProcessor;
 
 /**
  * The main launcher for the visualizer component.

@@ -80,6 +80,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 import org.javatuples.Pair;
+import se.sics.ktoolbox.aggregator.AggregatorSerializerSetup;
 import se.sics.ktoolbox.ipsolver.util.IpAddressStatus;
 import se.sics.ktoolbox.ipsolver.util.IpHelper;
 import se.sics.nat.NatDetectionComp;
@@ -554,7 +555,7 @@ public class DYWSLauncher extends ComponentDefinition {
         serializerId = NatSerializerSetup.registerSerializers(serializerId);
         serializerId = GradientSerializerSetup.registerSerializers(serializerId);
         serializerId = ElectionSerializerSetup.registerSerializers(serializerId);
-//        serializerId = AggregatorSerializerSetup.registerSerializers(serializerId);
+        serializerId = AggregatorSerializerSetup.registerSerializers(serializerId);
         serializerId = ChunkManagerSerializerSetup.registerSerializers(serializerId);
         serializerId = SerializerSetup.registerSerializers(serializerId);
         serializerId = GVoDSerializerSetup.registerSerializers(serializerId);

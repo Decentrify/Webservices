@@ -24,6 +24,7 @@
         <nat.version>0.0.1-SNAPSHOT</nat.version>
         <chunkmanager.version>1.3-SNAPSHOT</chunkmanager.version>
         <util.version>1.9-SNAPSHOT</util.version>
+        <aggregator.version>2.0-SNAPSHOT</aggregator.version>
         <sweep.version>1.3-SNAPSHOT</sweep.version>
         <gvod.version>0.0.7-SNAPSHOT</gvod.version>
         

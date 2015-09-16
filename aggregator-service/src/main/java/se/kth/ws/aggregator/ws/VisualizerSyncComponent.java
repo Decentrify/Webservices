@@ -4,13 +4,18 @@ import com.google.common.util.concurrent.SettableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.kth.ws.aggregator.util.DesignerEnum;
-import se.kth.ws.sweep.core.util.Result;
-import se.sics.kompics.*;
-import se.sics.ktoolbox.aggregator.global.api.event.WindowProcessing;
-import se.sics.ktoolbox.aggregator.global.api.ports.VisualizerPort;
 import se.sics.ms.data.aggregator.design.AggregatedInternalStateContainer;
 
 import java.util.UUID;
+import se.kth.ws.sweep.core.util.Result;
+import se.sics.kompics.ClassMatchedHandler;
+import se.sics.kompics.Component;
+import se.sics.kompics.ComponentDefinition;
+import se.sics.kompics.Handler;
+import se.sics.kompics.Positive;
+import se.sics.kompics.Start;
+import se.sics.ktoolbox.aggregator.server.VisualizerPort;
+import se.sics.ktoolbox.aggregator.server.event.WindowProcessing;
 
 /**
  * The main component that act as a async / sync conversion between the client and the
