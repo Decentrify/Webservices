@@ -141,12 +141,8 @@ public class DYWSLauncher extends ComponentDefinition {
     private Component sweepSyncComp;
     private Component vodHostComp;
     private DYWS dyWS;
-    private Config config;
-    private CaracalClientConfig ccConfig;
     private SystemConfigBuilder systemConfigBuilder;
     private SystemConfig systemConfig;
-    private HostManagerConfig gvodConfig;
-    private Socket socket;
 
     private SettableFuture<GVoDSyncI> gvodSyncIFuture;
     private SweepSyncI sweepSyncI;
@@ -253,6 +249,7 @@ public class DYWSLauncher extends ComponentDefinition {
                     @Override
                     public SCNetworkHook.InitResult setUp(ComponentProxy proxy, SCNetworkHook.Init hookInit) {
                         Component[] comp = new Component[1];
+                        LOG.info("{}binding on stun:{}", new Object[]{logPrefix, hookInit.adr});
                         //network
                         comp[0] = proxy.create(NettyNetwork.class, new NettyInit(hookInit.adr));
                         proxy.trigger(Start.event, comp[0].control());
@@ -315,7 +312,7 @@ public class DYWSLauncher extends ComponentDefinition {
     };
     
     private void buildSysConfig() {
-        initiateSocketBind();
+//        initiateSocketBind();
         LOG.debug("{}Socket successfully bound to ip :{} and port: {}", 
                 new Object[]{logPrefix, systemConfigBuilder.getSelfIp(), systemConfigBuilder.getSelfPort()});
 
@@ -331,18 +328,20 @@ public class DYWSLauncher extends ComponentDefinition {
         LOG.debug("{}Initiating the binding on the socket to keep the port being used by some other service.", logPrefix);
 
         int retries = BIND_RETRY;
+        Socket socket;
         while (retries > 0) {
 
 //          Port gets updated, so needs to be reset.
             Integer selfPort = systemConfigBuilder.getSelfPort();
 
             try {
-
+                
                 LOG.debug("{}Trying to bind on the socket1 with ip: {} and port: {}", 
                         new Object[]{logPrefix, localIp, selfPort});
                 socket = new Socket();
                 socket.setReuseAddress(true);
                 socket.bind(new InetSocketAddress(localIp, selfPort));
+                socket.close();
                 break;  // If exception is not thrown, break the loop.
             } catch (IOException e) {
 
@@ -360,22 +359,10 @@ public class DYWSLauncher extends ComponentDefinition {
 
     }
 
-    /**
-     * The method is used to release the socket by initiating close method on
-     * the socket.
-     */
-    private void releaseSocket() throws IOException {
-
-        if (this.socket != null && !this.socket.isClosed()) {
-            this.socket.close();
-        }
-    }
-
     //************************BASIC_SERVICES************************************
     private void connectRest() {
         connectNatCroupier();
-        connectCaracalClient();
-        connectHeartbeat();
+        connectCaracal();
 
         subscribe(handleCaracalDisconnect, caracalClientComp.getPositive(CCBootstrapPort.class));
         subscribe(handleCaracalReady, caracalClientComp.getPositive(CCBootstrapPort.class));
@@ -393,12 +380,12 @@ public class DYWSLauncher extends ComponentDefinition {
 
                     @Override
                     public NatNetworkHook.InitResult setUp(ComponentProxy proxy, NatNetworkHook.Init hookInit) {
-                        Component[] comp = new Component[1];
+                        Component[] comp = new Component[2];
                         if (!localIp.equals(hookInit.adr.getIp())) {
                             LOG.info("{}binding on private:{}", logPrefix, localIp.getHostAddress());
                             System.setProperty("altBindIf", localIp.getHostAddress());
                         }
-                        LOG.info("{}binding on public:{}", new Object[]{logPrefix, hookInit.adr});
+                        LOG.info("{}binding on nat:{}", new Object[]{logPrefix, hookInit.adr});
                         //network
                         comp[0] = proxy.create(NettyNetwork.class, new NettyInit(hookInit.adr));
                         proxy.trigger(Start.event, comp[0].control());
@@ -434,14 +421,13 @@ public class DYWSLauncher extends ComponentDefinition {
         trigger(new CroupierJoin(natInit.croupierBoostrap), globalCroupierComp.getPositive(CroupierControlPort.class));
     }
 
-    private void connectCaracalClient() {
-        caracalClientComp = create(CCBootstrapComp.class, new CCBootstrapComp.CCBootstrapInit(systemConfig, ccConfig, ConfigHelper.readCaracalBootstrap(config)));
+    private void connectCaracal() {
+        CaracalClientConfig ccConfig = new CaracalClientConfig(systemConfig.config);
+        caracalClientComp = create(CCBootstrapComp.class, new CCBootstrapComp.CCBootstrapInit(systemConfig, ccConfig, ConfigHelper.readCaracalBootstrap(systemConfig.config)));
         connect(caracalClientComp.getNegative(Timer.class), timerComp.getPositive(Timer.class));
         connect(caracalClientComp.getNegative(Network.class), natComp.getPositive(Network.class));
         trigger(Start.event, caracalClientComp.control());
-    }
 
-    private void connectHeartbeat() {
         heartbeatComp = create(CCHeartbeatComp.class, new CCHeartbeatComp.CCHeartbeatInit(systemConfig, ccConfig));
         connect(heartbeatComp.getNegative(Timer.class), timerComp.getPositive(Timer.class));
         connect(heartbeatComp.getNegative(CCBootstrapPort.class), caracalClientComp.getPositive(CCBootstrapPort.class));
@@ -497,7 +483,7 @@ public class DYWSLauncher extends ComponentDefinition {
     }
 
     private void connectVoDHost() {
-        vodHostComp = create(HostManagerComp.class, new HostManagerComp.HostManagerInit(gvodConfig, gvodSyncIFuture, vodSchemaId));
+        vodHostComp = create(HostManagerComp.class, new HostManagerComp.HostManagerInit(new HostManagerConfig(systemConfig.config), gvodSyncIFuture, vodSchemaId));
         connect(vodHostComp.getNegative(Network.class), natComp.getPositive(Network.class));
         connect(vodHostComp.getNegative(Timer.class), timerComp.getPositive(Timer.class));
         connect(vodHostComp.getNegative(CCBootstrapPort.class), caracalClientComp.getPositive(CCBootstrapPort.class));
@@ -506,11 +492,11 @@ public class DYWSLauncher extends ComponentDefinition {
     }
 
     private void connectSweep() {
-        GradientConfig gradientConfig = new GradientConfig(config);
-        CroupierConfig croupierConfig = new CroupierConfig(config);
-        ElectionConfig electionConfig = new ElectionConfig(config);
-        ChunkManagerConfig chunkManagerConfig = new ChunkManagerConfig(config);
-        TreeGradientConfig treeGradientConfig = new TreeGradientConfig(config);
+        GradientConfig gradientConfig = new GradientConfig(systemConfig.config);
+        CroupierConfig croupierConfig = new CroupierConfig(systemConfig.config);
+        ElectionConfig electionConfig = new ElectionConfig(systemConfig.config);
+        ChunkManagerConfig chunkManagerConfig = new ChunkManagerConfig(systemConfig.config);
+        TreeGradientConfig treeGradientConfig = new TreeGradientConfig(systemConfig.config);
 
         sweepHostComp = create(SearchPeer.class, new SearchPeerInit(systemConfig, croupierConfig,
                 SearchConfiguration.build(), GradientConfiguration.build(),
@@ -533,7 +519,7 @@ public class DYWSLauncher extends ComponentDefinition {
 
         try {
             dyWS = new DYWS(sweepSyncI, gvodSyncIFuture);
-            String[] args = new String[]{"server", config.getString("webservice.server")};
+            String[] args = new String[]{"server", systemConfig.config.getString("webservice.server")};
             dyWS.run(args);
         } catch (ConfigException.Missing ex) {
             LOG.error("bad configuration, could not find webservice.server");
