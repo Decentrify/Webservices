@@ -23,6 +23,12 @@
                 {
                     templateUrl:'partials/searchResponse.html'
                 })
+                .when('/replicationLag',
+                {
+                    templateUrl:'partials/replicationLag.html',
+                    controller: 'ReplicationLagController',
+                    controllerAs: 'replicationLag'
+                })
 
 
         }])
