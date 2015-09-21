@@ -209,7 +209,7 @@ public class VisualizerLauncher extends ComponentDefinition{
 
         Map<String, DesignProcessor> processorMap = getDesignProcessorMap();
 
-        aggregator = create(GlobalAggregator.class, new GlobalAggregatorInit(MsConfig.LOCAL_AGGREGATOR_TIMEOUT));
+        aggregator = create(GlobalAggregator.class, new GlobalAggregatorInit(MsConfig.AGGREGATOR_TIMEOUT));
         visualizer = create(Visualizer.class, new VisualizerInit(maxSnapShots, processorMap));
 
         visualizerSyncComp = create(VisualizerSyncComponent.class, Init.NONE);
