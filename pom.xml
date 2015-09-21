@@ -20,7 +20,7 @@
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         
-        <kompics.version>0.8.2-SNAPSHOT</kompics.version>
+        <kompics.version>0.8.3-SNAPSHOT</kompics.version>
         <nat.version>0.0.1-SNAPSHOT</nat.version>
         <chunkmanager.version>1.3-SNAPSHOT</chunkmanager.version>
         <util.version>1.9-SNAPSHOT</util.version>
