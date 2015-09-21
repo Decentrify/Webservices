@@ -20,7 +20,6 @@ package se.kth.ws.dy;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.SettableFuture;
-import com.typesafe.config.Config;
 import com.typesafe.config.ConfigException;
 import com.typesafe.config.ConfigFactory;
 import org.slf4j.Logger;
@@ -259,7 +258,6 @@ public class DYWSLauncher extends ComponentDefinition {
 
                     @Override
                     public void tearDown(ComponentProxy proxy, SCNetworkHook.Tear hookTear) {
-                        proxy.trigger(Stop.event, hookTear.components[0].control());
                     }
                 }));
 
@@ -400,10 +398,6 @@ public class DYWSLauncher extends ComponentDefinition {
 
                     @Override
                     public void tearDown(ComponentProxy proxy, NatNetworkHook.Tear hookTear) {
-                        proxy.trigger(Stop.event, hookTear.components[0].control());
-                        proxy.trigger(Stop.event, hookTear.components[1].control());
-                        proxy.disconnect(hookTear.components[1].getNegative(Network.class), hookTear.components[0].getPositive(Network.class));
-                        proxy.disconnect(hookTear.components[1].getNegative(Timer.class), hookTear.timer);
                     }
 
                 },
