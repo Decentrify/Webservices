@@ -85,7 +85,10 @@ import se.sics.ktoolbox.ipsolver.util.IpHelper;
 import se.sics.nat.NatDetectionComp;
 import se.sics.nat.NatDetectionPort;
 import se.sics.nat.NatInitHelper;
+import se.sics.nat.NatLauncherProxy;
 import se.sics.nat.NatSerializerSetup;
+import se.sics.nat.NatSetup;
+import se.sics.nat.NatSetupResult;
 import se.sics.nat.NatTraverserComp;
 import se.sics.nat.common.croupier.GlobalCroupierView;
 import se.sics.nat.hooks.NatNetworkHook;
@@ -130,22 +133,21 @@ public class DYWSLauncher extends ComponentDefinition {
     private static final int BIND_RETRY = 3;
 
     private Component timerComp;
-    private Component ipSolverComp;
-    private Component natDetectionComp;
-    private Component natComp;
-    private Component globalCroupierComp;
+    private Positive<Network> network;
+    private Positive<SelfAddressUpdatePort> adrUpdate;
+    private Positive<CroupierPort> globalCroupier;
     private Component caracalClientComp;
     private Component heartbeatComp;
     private Component sweepHostComp;
     private Component sweepSyncComp;
     private Component vodHostComp;
     private DYWS dyWS;
-    private SystemConfigBuilder systemConfigBuilder;
+    
     private SystemConfig systemConfig;
 
     private SettableFuture<GVoDSyncI> gvodSyncIFuture;
     private SweepSyncI sweepSyncI;
-
+    
     private InetAddress localIp;
     private byte[] vodSchemaId = null;
     //**************************************************************************
@@ -156,210 +158,36 @@ public class DYWSLauncher extends ComponentDefinition {
             LOG.error("launcher logic error - ipType not set");
             System.exit(1);
         }
-        this.systemConfigBuilder = new SystemConfigBuilder(ConfigFactory.load());
         gvodSyncIFuture = SettableFuture.create();
 
         subscribe(handleStart, control);
-        subscribe(handleStop, control);
     }
 
-    //*****************************CONTROL**************************************
-    Handler handleStart = new Handler<Start>() {
+   //*****************************CONTROL**************************************
+    private Handler handleStart = new Handler<Start>() {
         @Override
         public void handle(Start event) {
-            LOG.info("{}starting - timer, ipSolver", logPrefix);
-            connectTimer();
-            connectIpSolver();
+            LOG.info("{}starting", logPrefix);
+            connectNStartTimer();
+            connectNStartNat();
+            LOG.info("{}waiting for nat", logPrefix);
         }
     };
 
-    Handler handleStop = new Handler<Stop>() {
-        @Override
-        public void handle(Stop event) {
-            LOG.info("{}stopping...", logPrefix);
-        }
-    };
-
-    @Override
-    public Fault.ResolveAction handleFault(Fault fault) {
-        LOG.error("{}child component failure:{}", logPrefix, fault);
-        System.exit(1);
-        return Fault.ResolveAction.RESOLVED;
-    }
-
-    //****************************ADDRESS_DETECTION*****************************
-    private void connectTimer() {
+    private void connectNStartTimer() {
         timerComp = create(JavaTimer.class, Init.NONE);
         trigger(Start.event, timerComp.control());
     }
 
-    private void connectIpSolver() {
-        ipSolverComp = create(IpSolverComp.class, new IpSolverComp.IpSolverInit());
-        subscribe(handleGetIp, ipSolverComp.getPositive(IpSolverPort.class));
-        trigger(Start.event, ipSolverComp.control());
-        trigger(new GetIp.Req(EnumSet.of(GetIp.NetworkInterfacesMask.ALL)), ipSolverComp.getPositive(IpSolverPort.class));
+    private void connectNStartNat() {
+        NatSetup natSetup = new NatSetup(new DYWSLauncherProxy(),
+                timerComp.getPositive(Timer.class),
+                new SystemConfigBuilder(ConfigFactory.load()));
+        natSetup.setup();
+        natSetup.start(false);
     }
 
-    public Handler handleGetIp = new Handler<GetIp.Resp>() {
-        @Override
-        public void handle(GetIp.Resp resp) {
-            LOG.info("{}received ips:{}", logPrefix, resp.addrs);
-            if (!resp.addrs.isEmpty()) {
-                Iterator<IpAddressStatus> it = resp.addrs.iterator();
-                while (it.hasNext()) {
-                    IpAddressStatus next = it.next();
-                    if (IpHelper.isPublic(next.getAddr())) {
-                        localIp = next.getAddr();
-                        break;
-                    }
-                }
-                if (localIp == null) {
-                    it = resp.addrs.iterator();
-                    while (it.hasNext()) {
-                        IpAddressStatus next = it.next();
-                        if (IpHelper.isPrivate(next.getAddr())) {
-                            localIp = next.getAddr();
-                            break;
-                        }
-                    }
-                }
-                if (localIp == null) {
-                    localIp = resp.addrs.get(0).getAddr();
-                }
-                if (resp.addrs.size() > 1) {
-                    LOG.warn("{}multiple ips detected, proceeding with:{}", logPrefix, localIp);
-                }
-                LOG.info("{}starting: private ip:{}", logPrefix, localIp);
-                LOG.info("{}starting: stunClient", logPrefix);
-                connectNatDetection();
-            } else {
-                LOG.error("{}no private ip detected", logPrefix);
-                throw new RuntimeException("no private ip detected");
-            }
-        }
-    };
-
-    private void connectNatDetection() {
-        natDetectionComp = create(NatDetectionComp.class, new NatDetectionComp.NatDetectionInit(
-                new BasicAddress(localIp, systemConfigBuilder.getSelfPort(), systemConfigBuilder.getSelfId()),
-                new NatInitHelper(ConfigFactory.load()),
-                new SCNetworkHook.Definition() {
-
-                    @Override
-                    public SCNetworkHook.InitResult setUp(ComponentProxy proxy, SCNetworkHook.Init hookInit) {
-                        Component[] comp = new Component[1];
-                        LOG.info("{}binding on stun:{}", new Object[]{logPrefix, hookInit.adr});
-                        //network
-                        comp[0] = proxy.create(NettyNetwork.class, new NettyInit(hookInit.adr));
-                        proxy.trigger(Start.event, comp[0].control());
-                       
-                        return new SCNetworkHook.InitResult(comp[0].getPositive(Network.class), comp);
-                    }
-
-                    @Override
-                    public void tearDown(ComponentProxy proxy, SCNetworkHook.Tear hookTear) {
-                    }
-                }));
-
-        connect(natDetectionComp.getNegative(Timer.class), timerComp.getPositive(Timer.class));
-        subscribe(handleNatReady, natDetectionComp.getPositive(NatDetectionPort.class));
-        trigger(Start.event, natDetectionComp.control());
-    }
-
-    private Handler handleNatReady = new Handler<NatReady>() {
-        @Override
-        public void handle(NatReady ready) {
-            LOG.info("{}nat detected:{} public ip:{} private ip:{}",
-                    new Object[]{logPrefix, ready.nat, ready.publicIp, localIp});
-            systemConfigBuilder.setSelfIp(ready.publicIp);
-            systemConfigBuilder.setSelfNat(ready.nat);
-            if (ready.nat.type.equals(Nat.Type.UPNP)) {
-                subscribe(handleMapPorts, natDetectionComp.getPositive(UpnpPort.class));
-                subscribe(handleUnmapPorts, natDetectionComp.getPositive(UpnpPort.class));
-                Map<Integer, Pair<Protocol, Integer>> mapPort = new HashMap<Integer, Pair<Protocol, Integer>>();
-                mapPort.put(systemConfigBuilder.getSelfPort(), Pair.with(Protocol.UDP, systemConfigBuilder.getSelfPort()));
-                trigger(new MapPorts.Req(UUID.randomUUID(), mapPort), natDetectionComp.getPositive(UpnpPort.class));
-            } else {
-                buildSysConfig();
-                connectRest();
-            }
-        }
-    };
-    
-     Handler handleMapPorts = new Handler<MapPorts.Resp>() {
-        @Override
-        public void handle(MapPorts.Resp resp) {
-            LOG.info("{}received map:{}", logPrefix, resp.ports);
-            int localPort = systemConfigBuilder.getSelfPort();
-            int upnpPort = resp.ports.get(systemConfigBuilder.getSelfPort()).getValue1();
-            if (localPort != upnpPort) {
-                //TODO Alex - fix
-                LOG.error("{}not handling yet upnp port different than local");
-                throw new RuntimeException("not handling yet upnp port different than local");
-            }
-            buildSysConfig();
-            connectRest();
-        }
-    };
-
-    Handler handleUnmapPorts = new Handler<UnmapPorts.Resp>() {
-        @Override
-        public void handle(UnmapPorts.Resp resp) {
-            LOG.info("received unmap:{}", resp.ports);
-        }
-    };
-    
-    private void buildSysConfig() {
-//        initiateSocketBind();
-        LOG.debug("{}Socket successfully bound to ip :{} and port: {}", 
-                new Object[]{logPrefix, systemConfigBuilder.getSelfIp(), systemConfigBuilder.getSelfPort()});
-
-        LOG.debug("{}Building the system configuration.");
-        systemConfig = systemConfigBuilder.build();
-    }
-
-    /**
-     * Try to bind on the socket and keep a reference of the socket.
-     */
-    private void initiateSocketBind() {
-
-        LOG.debug("{}Initiating the binding on the socket to keep the port being used by some other service.", logPrefix);
-
-        int retries = BIND_RETRY;
-        Socket socket;
-        while (retries > 0) {
-
-//          Port gets updated, so needs to be reset.
-            Integer selfPort = systemConfigBuilder.getSelfPort();
-
-            try {
-                
-                LOG.debug("{}Trying to bind on the socket1 with ip: {} and port: {}", 
-                        new Object[]{logPrefix, localIp, selfPort});
-                socket = new Socket();
-                socket.setReuseAddress(true);
-                socket.bind(new InetSocketAddress(localIp, selfPort));
-                socket.close();
-                break;  // If exception is not thrown, break the loop.
-            } catch (IOException e) {
-
-                LOG.debug("{}Socket Bind failed, retrying.", logPrefix);
-                systemConfigBuilder.setPort();
-            }
-
-            retries--;
-        }
-
-        if (retries <= 0) {
-            LOG.error("{}Unable to bind on a socket, exiting.", logPrefix);
-            throw new RuntimeException("Unable to identify port for the socket to bind on.");
-        }
-
-    }
-
-    //************************BASIC_SERVICES************************************
-    private void connectRest() {
-        connectNatCroupier();
+    private void connectNStartApp() {
         connectCaracal();
 
         subscribe(handleCaracalDisconnect, caracalClientComp.getPositive(CCBootstrapPort.class));
@@ -367,59 +195,90 @@ public class DYWSLauncher extends ComponentDefinition {
         subscribe(handleHeartbeatReady, heartbeatComp.getPositive(CCHeartbeatPort.class));
     }
 
-    private void connectNatCroupier() {
-        CroupierConfig croupierConfig = new CroupierConfig(systemConfig.config);
-        NatInitHelper natInit = new NatInitHelper(systemConfig.config);
-        globalCroupierComp = create(CroupierComp.class, new CroupierComp.CroupierInit(systemConfig, croupierConfig, natInit.globalCroupierOverlayId));
-        natComp = create(NatTraverserComp.class, new NatTraverserComp.NatTraverserInit(
-                systemConfig,
-                new NatInitHelper(ConfigFactory.load()),
-                new NatNetworkHook.Definition() {
+    public class DYWSLauncherProxy implements NatLauncherProxy {
 
-                    @Override
-                    public NatNetworkHook.InitResult setUp(ComponentProxy proxy, NatNetworkHook.Init hookInit) {
-                        Component[] comp = new Component[2];
-                        if (!localIp.equals(hookInit.adr.getIp())) {
-                            LOG.info("{}binding on private:{}", logPrefix, localIp.getHostAddress());
-                            System.setProperty("altBindIf", localIp.getHostAddress());
-                        }
-                        LOG.info("{}binding on nat:{}", new Object[]{logPrefix, hookInit.adr});
-                        //network
-                        comp[0] = proxy.create(NettyNetwork.class, new NettyInit(hookInit.adr));
-                        proxy.trigger(Start.event, comp[0].control());
-                        
-                         //chunkmanager
-                        comp[1] = proxy.create(ChunkManagerComp.class, new ChunkManagerComp.CMInit(systemConfig, new ChunkManagerConfig(systemConfig.config)));
-                        proxy.connect(comp[1].getNegative(Network.class), comp[0].getPositive(Network.class));
-                        proxy.connect(comp[1].getNegative(Timer.class), hookInit.timer);
-                        proxy.trigger(Start.event, comp[1].control());
-                        return new NatNetworkHook.InitResult(comp[1].getPositive(Network.class), comp);
-                    }
+        @Override
+        public void startApp(NatSetupResult result) {
+            DYWSLauncher.this.network = result.network;
+            DYWSLauncher.this.adrUpdate = result.adrUpdate;
+            DYWSLauncher.this.globalCroupier = result.globalCroupier;
+            DYWSLauncher.this.systemConfig = result.systemConfig;
+            LOG.info("{}nat started with:{}", logPrefix, result.systemConfig.self);
+            DYWSLauncher.this.connectNStartApp();
+        }
 
-                    @Override
-                    public void tearDown(ComponentProxy proxy, NatNetworkHook.Tear hookTear) {
-                    }
+        @Override
+        public <P extends PortType> Positive<P> requires(Class<P> portType) {
+            return DYWSLauncher.this.requires(portType);
+        }
 
-                },
-                new CroupierConfig(ConfigFactory.load())));
+        @Override
+        public <P extends PortType> Negative<P> provides(Class<P> portType) {
+            return DYWSLauncher.this.provides(portType);
+        }
 
-        connect(globalCroupierComp.getNegative(Timer.class), timerComp.getPositive(Timer.class));
-        connect(globalCroupierComp.getNegative(SelfAddressUpdatePort.class), natComp.getPositive(SelfAddressUpdatePort.class));
-        connect(globalCroupierComp.getNegative(Network.class), natComp.getPositive(Network.class), new IntegerOverlayFilter(natInit.globalCroupierOverlayId));
-        connect(natComp.getNegative(Timer.class), timerComp.getPositive(Timer.class));
-        connect(natComp.getNegative(CroupierPort.class), globalCroupierComp.getPositive(CroupierPort.class));
+        @Override
+        public Negative<ControlPort> getControlPort() {
+            return DYWSLauncher.this.control;
+        }
 
-        trigger(Start.event, natComp.control());
-        trigger(Start.event, globalCroupierComp.control());
-        trigger(new CroupierUpdate(new GlobalCroupierView()), globalCroupierComp.getNegative(SelfViewUpdatePort.class));
-        trigger(new CroupierJoin(natInit.croupierBoostrap), globalCroupierComp.getPositive(CroupierControlPort.class));
+        @Override
+        public <T extends ComponentDefinition> Component create(Class<T> definition, Init<T> initEvent) {
+            return DYWSLauncher.this.create(definition, initEvent);
+        }
+
+        @Override
+        public <T extends ComponentDefinition> Component create(Class<T> definition, Init.None initEvent) {
+            return DYWSLauncher.this.create(definition, initEvent);
+        }
+
+        @Override
+        public <P extends PortType> Channel<P> connect(Positive<P> positive, Negative<P> negative) {
+            return DYWSLauncher.this.connect(positive, negative);
+        }
+
+        @Override
+        public <P extends PortType> Channel<P> connect(Positive<P> positive, Negative<P> negative, ChannelFilter filter) {
+            return DYWSLauncher.this.connect(positive, negative, filter);
+        }
+
+        @Override
+        public <P extends PortType> Channel<P> connect(Negative<P> negative, Positive<P> positive) {
+            return DYWSLauncher.this.connect(negative, positive);
+        }
+
+        @Override
+        public <P extends PortType> Channel<P> connect(Negative<P> negative, Positive<P> positive, ChannelFilter filter) {
+            return DYWSLauncher.this.connect(negative, positive, filter);
+        }
+
+        @Override
+        public <P extends PortType> void disconnect(Negative<P> negative, Positive<P> positive) {
+            DYWSLauncher.this.disconnect(negative, positive);
+        }
+
+        @Override
+        public <P extends PortType> void disconnect(Positive<P> positive, Negative<P> negative) {
+            DYWSLauncher.this.disconnect(positive, negative);
+        }
+
+        @Override
+        public <P extends PortType> void trigger(KompicsEvent e, Port<P> p) {
+            DYWSLauncher.this.trigger(e, p);
+        }
+
+        @Override
+        public <E extends KompicsEvent, P extends PortType> void subscribe(Handler<E> handler, Port<P> port) throws ConfigurationException {
+            DYWSLauncher.this.subscribe(handler, port);
+        }
     }
 
+    //************************BASIC_SERVICES************************************
     private void connectCaracal() {
         CaracalClientConfig ccConfig = new CaracalClientConfig(systemConfig.config);
         caracalClientComp = create(CCBootstrapComp.class, new CCBootstrapComp.CCBootstrapInit(systemConfig, ccConfig, ConfigHelper.readCaracalBootstrap(systemConfig.config)));
         connect(caracalClientComp.getNegative(Timer.class), timerComp.getPositive(Timer.class));
-        connect(caracalClientComp.getNegative(Network.class), natComp.getPositive(Network.class));
+        connect(caracalClientComp.getNegative(Network.class), network);
         trigger(Start.event, caracalClientComp.control());
 
         heartbeatComp = create(CCHeartbeatComp.class, new CCHeartbeatComp.CCHeartbeatInit(systemConfig, ccConfig));
@@ -470,22 +329,23 @@ public class DYWSLauncher extends ComponentDefinition {
 
     //***************************APPLICATION************************************
     private void connectApplication() {
-        connectSweep();
+        connectNStartSweep();
         connectSweepSync();
-        connectVoDHost();
+        connectNStartVoDHost();
         startWebservice();
     }
 
-    private void connectVoDHost() {
+    private void connectNStartVoDHost() {
         vodHostComp = create(HostManagerComp.class, new HostManagerComp.HostManagerInit(new HostManagerConfig(systemConfig.config), gvodSyncIFuture, vodSchemaId));
-        connect(vodHostComp.getNegative(Network.class), natComp.getPositive(Network.class));
+        connect(vodHostComp.getNegative(Network.class), network);
         connect(vodHostComp.getNegative(Timer.class), timerComp.getPositive(Timer.class));
         connect(vodHostComp.getNegative(CCBootstrapPort.class), caracalClientComp.getPositive(CCBootstrapPort.class));
         connect(vodHostComp.getNegative(CCHeartbeatPort.class), heartbeatComp.getPositive(CCHeartbeatPort.class));
+        connect(vodHostComp.getNegative(SelfAddressUpdatePort.class), adrUpdate);
         trigger(Start.event, vodHostComp.control());
     }
 
-    private void connectSweep() {
+    private void connectNStartSweep() {
         GradientConfig gradientConfig = new GradientConfig(systemConfig.config);
         CroupierConfig croupierConfig = new CroupierConfig(systemConfig.config);
         ElectionConfig electionConfig = new ElectionConfig(systemConfig.config);
@@ -496,8 +356,9 @@ public class DYWSLauncher extends ComponentDefinition {
                 SearchConfiguration.build(), GradientConfiguration.build(),
                 chunkManagerConfig, gradientConfig, electionConfig, treeGradientConfig));
         connect(sweepHostComp.getNegative(Timer.class), timerComp.getPositive(Timer.class));
-        connect(sweepHostComp.getNegative(Network.class), natComp.getPositive(Network.class));
+        connect(sweepHostComp.getNegative(Network.class), network);
         connect(sweepHostComp.getNegative(CCHeartbeatPort.class), heartbeatComp.getPositive(CCHeartbeatPort.class));
+        connect(sweepHostComp.getNegative(SelfAddressUpdatePort.class), adrUpdate);
         trigger(Start.event, sweepHostComp.control());
     }
 
