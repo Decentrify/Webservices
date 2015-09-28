@@ -13,7 +13,6 @@
                 })
                 .when('/aggregatedInfo',
                 {
-
                     templateUrl:'partials/internalAggregatedInfo.html',
                     controller: 'AggregatedStateController',
                     controllerAs: 'aggregatedStateController'
@@ -27,9 +26,14 @@
                 {
                     templateUrl:'partials/replicationLag.html',
                     controller: 'ReplicationLagController',
-                    controllerAs: 'replicationLag'
+                    controllerAs: 'replicationLagController'
                 })
-
+                .when('/perReplicationLag',
+                {
+                    templateUrl:'partials/perReplicationLag.html',
+                    controller: 'PercentageReplicationLagController',
+                    controllerAs: 'percentileLagController'
+                })
 
         }])
 

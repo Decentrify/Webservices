@@ -28,6 +28,7 @@ logging:
     "se.sics.gvod.manager.VoDManager": INFO
     "se.sics.p2ptoolbox.election.core.ElectionLeader": WARN
     "se.sics.ktoolbox.aggregator.global.core.GlobalAggregator": DEBUG
+    "se.sics.ms.helper.DataDump": DEBUG
   console:
       enabled: true
 

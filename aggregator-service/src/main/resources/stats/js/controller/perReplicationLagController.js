@@ -2,7 +2,7 @@
 
 
     angular.module('statisticsApp')
-        .controller('ReplicationLagController',['$log', '$scope','$interval', 'VisualizerService', ReplicationLagController]);
+        .controller('PercentageReplicationLagController',['$log', '$scope','$interval', 'VisualizerService', PercentageReplicationLagController]);
 
     /**
      * Main controller for depicting the replication lag in the system.
@@ -12,13 +12,13 @@
      * @param VisualizerService
      * @constructor
      */
-    function ReplicationLagController($log, $scope, $interval, VisualizerService){
+    function PercentageReplicationLagController($log, $scope, $interval , VisualizerService){
 
         var self = this;
         self.container = [];
 
         self.timeout = $interval(function(){
-            VisualizerService.getAvgReplicationLag()
+            VisualizerService.getPerReplicationLag()
                 .then(success)
                 .catch(httpError);
         }, 5000);
@@ -43,19 +43,20 @@
         })
     }
 
+
     /**
-     * Restructure the aggregated data based on the
-     * UI requirement for rendering the information.
+     * Restructure the data based on the
      *
      * @param baseJsonData
-     * @returns {{data: Array, ranges: Array}}
+     * @returns {{fifty: Array, seventyFive: Array, ninety: Array}}
      */
     function restructureData(baseJsonData){
 
         var i, len, minTime;
         var result = {
-            data:[],
-            ranges:[]
+            fifty:[],
+            seventyFive:[],
+            ninety:[]
         };
 
         if(baseJsonData.length > 0){
@@ -72,9 +73,11 @@
         for( i=0 , len= baseJsonData.length; i < len ; i++){
 
             baseJsonData[i].time = baseJsonData[i].time - minTime;
-            result.data.push([(baseJsonData[i].time/1000), baseJsonData[i].avgLag]);
-            result.ranges.push([(baseJsonData[i].time/1000), baseJsonData[i].minLag, baseJsonData[i].maxLag]);
+            result.fifty.push([(baseJsonData[i].time/1000), baseJsonData[i].fifty]);
+            result.seventyFive.push([(baseJsonData[i].time/1000), baseJsonData[i].seventyFive]);
+            result.ninety.push([(baseJsonData[i].time/1000), baseJsonData[i].ninety]);
         }
+
 
         return result;
     }

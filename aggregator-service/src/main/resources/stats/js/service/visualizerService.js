@@ -9,8 +9,48 @@
 
         return {
             getAggregatedState: getAggregatedState,
-            getAvgSearchResponse: getAvgSearchResponse
+            getAvgSearchResponse: getAvgSearchResponse,
+            getAvgReplicationLag: getAvgReplicationLag,
+            getPerReplicationLag: getPerReplicationLag
         };
+
+
+        /**
+         * REST Call to fetch the average replication lag in the system.
+         * By default the call fetches the last N windows.
+         */
+        function getAvgReplicationLag(){
+
+            $log.debug("Invoking the call to fetch the average replication lag in the system.")
+
+            return $http({
+
+                method: 'GET',
+                url: '/getAvgReplicationLag'
+            })
+                .then(httpSuccess)
+                .catch(httpError)
+        }
+
+
+
+        /**
+         * REST Call to fetch the percentile replication lag in the system.
+         * By default the call fetches the last N windows.
+         */
+        function getPerReplicationLag(){
+
+            $log.debug("Invoking the call to fetch the average replication lag in the system.")
+
+            return $http({
+
+                method: 'GET',
+                url: '/getPerReplicationLag'
+            })
+                .then(httpSuccess)
+                .catch(httpError)
+        }
+
 
 
         /**

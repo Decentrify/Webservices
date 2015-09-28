@@ -1,15 +1,16 @@
+
 (function(){
 
-
     angular.module('statisticsApp')
-        .directive('replicationLag', ['$log',replicationLag]);
+        .directive('percentileLag',['$log', percentileLag]);
+
 
     /**
      * Main directive for the replication lag display.
      * @param $log
      * @returns {{restrict: string, scope: {data: string}, link: Function, template: string}}
      */
-    function replicationLag($log) {
+    function percentileLag($log) {
 
         return {
 
@@ -24,11 +25,11 @@
                 var chart = new Highcharts.Chart({
 
                     chart: {
-                        renderTo: 'replicationLagContainer'
+                        renderTo: 'percentileReplicationLagContainer'
                     },
 
                     title: {
-                        text: 'Average Entry Replication Lag'
+                        text: 'Entry Replication Lag'
                     },
 
                     xAxis: {
@@ -43,6 +44,13 @@
                             text: 'Number of Entries'
                         }
                     },
+
+                    tooltip: {
+                        crosshairs: true,
+                        shared: true,
+                        valueSuffix: ' entries'
+                    },
+
                     legend: {
                         layout: 'vertical',
                         align: 'left',
@@ -54,15 +62,9 @@
                         borderWidth: 1
                     },
 
-                    tooltip: {
-                        crosshairs: true,
-                        shared: true,
-                        valueSuffix: ''
-                    },
-
                     series: [{
-                        name: 'Average Lag',
-                        data: scope.container.data,
+                        name: 'Fifty Percentile Lag',
+                        data: scope.container.fifty,
                         zIndex: 1,
                         marker: {
                             fillColor: 'white',
@@ -70,29 +72,44 @@
                             lineColor: Highcharts.getOptions().colors[0]
                         }
                     },
+
                         {
-                            name: 'Entry Lag Range',
-                            data: scope.container.ranges,
-                            type: 'arearange',
-                            lineWidth: 0,
-                            linkedTo: ':previous',
-                            color: Highcharts.getOptions().colors[0],
-                            fillOpacity: 0.3,
-                            zIndex: 0
+                            name: 'Seventy Five Percentile Lag',
+                            data: scope.container.seventyFive,
+                            zIndex: 1,
+                            marker: {
+                                fillColor: 'white',
+                                lineWidth: 2,
+                                lineColor: Highcharts.getOptions().colors[1]
+                            }
+                        },
+
+                        {
+                            name: 'Ninety Percentile Lag',
+                            data: scope.container.ninety,
+                            zIndex: 1,
+                            marker: {
+                                fillColor: 'white',
+                                lineWidth: 2,
+                                lineColor: Highcharts.getOptions().colors[2]
+                            }
                         }
                     ]
                 });
 
                 scope.$watch("container", function (newValue) {
-                    chart.series[0].setData(newValue.data, true);
-                    chart.series[1].setData(newValue.ranges, true);
+                    chart.series[0].setData(newValue.fifty, true);
+                    chart.series[1].setData(newValue.seventyFive, true);
+                    chart.series[2].setData(newValue.ninety, true);
                 }, true);
 
             },
 
-            template: '<div id="replicationLagContainer" style="height: 500px; width: 980px" class="medium-top-buffer"> Not Working </div>'
+            template: '<div id="percentileReplicationLagContainer" style="height: 500px; width: 980px" class="medium-top-buffer"> Not Working </div>'
         }
     }
 
-
 }());
+
+
+

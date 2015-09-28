@@ -281,7 +281,7 @@ public class SimVisualizerLauncher extends ComponentDefinition{
         if (Kompics.isOn()) {
             Kompics.shutdown();
         }
-        Kompics.createAndStart(se.kth.ws.aggregator.ws.VisualizerLauncher.class, Runtime.getRuntime().availableProcessors(), 20); // Yes 20 is totally arbitrary
+        Kompics.createAndStart(se.kth.ws.aggregator.simWS.SimVisualizerLauncher.class, Runtime.getRuntime().availableProcessors(), 20); // Yes 20 is totally arbitrary
         try {
             Kompics.waitForTermination();
         } catch (InterruptedException ex) {
