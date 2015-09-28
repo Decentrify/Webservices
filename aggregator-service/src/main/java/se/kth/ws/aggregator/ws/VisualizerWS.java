@@ -38,6 +38,8 @@ public class VisualizerWS  extends Service<Configuration>{
 
         environment.addProvider(new VisualizerRESTMsgs.AggregatedInternalState(this.visualizerSyncI));
         environment.addProvider(new VisualizerRESTMsgs.AvgSearchResponse(this.visualizerSyncI));
+        environment.addProvider(new VisualizerRESTMsgs.AvgReplicationLag(this.visualizerSyncI));
+        environment.addProvider(new VisualizerRESTMsgs.PercentageReplicationLag(this.visualizerSyncI));
 
         logger.debug("Enabling the Cross Origin Request.");
         /*

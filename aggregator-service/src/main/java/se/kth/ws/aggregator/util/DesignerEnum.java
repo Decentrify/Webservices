@@ -2,6 +2,8 @@ package se.kth.ws.aggregator.util;
 
 import se.sics.ktoolbox.aggregator.server.util.DesignProcessor;
 import se.sics.ms.aggregator.processor.InternalStateDesignProcessor;
+import se.sics.ms.aggregator.processor.PercentileLagDesignProcessor;
+import se.sics.ms.aggregator.processor.ReplicationLagDesignProcessor;
 import se.sics.ms.aggregator.processor.SearchRespDesignProcessor;
 
 /**
@@ -12,7 +14,9 @@ import se.sics.ms.aggregator.processor.SearchRespDesignProcessor;
 public enum DesignerEnum {
 
     AvgSearchResponse("avgSearchResponse", new SearchRespDesignProcessor()),
-    AggInternalState("aggregatedInternalState", new InternalStateDesignProcessor());
+    AggInternalState("aggregatedInternalState", new InternalStateDesignProcessor()),
+    ReplicationLagDesigner("replicationLag", new ReplicationLagDesignProcessor()),
+    PercentileLagDesigner("percentileLag", new PercentileLagDesignProcessor());
 
     private String name;
     private DesignProcessor processor;

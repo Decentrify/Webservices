@@ -3,6 +3,8 @@ package se.kth.ws.aggregator.ws;
 import com.google.common.util.concurrent.SettableFuture;
 import se.kth.ws.sweep.core.util.Result;
 import se.sics.ms.aggregator.design.AggregatedInternalStateContainer;
+import se.sics.ms.aggregator.design.PercentileLagDesignInfoContainer;
+import se.sics.ms.aggregator.design.ReplicationLagDesignInfoContainer;
 
 /**
  * Visualizer Synchronous Interface.
@@ -28,5 +30,23 @@ public interface VisualizerSyncI {
      * @param settableFuture settable future.
      */
     public void getAggregatedInternalState(SettableFuture<Result<AggregatedInternalStateContainer>> settableFuture);
+
+
+    /**
+     * Call to fetch the average replication in the system, which in turn will be aggregated
+     * over all the lags in the system.
+     *
+     * @param settableFuture settable future to wait upon.
+     */
+    public void getAverageReplicationLag(SettableFuture<Result<ReplicationLagDesignInfoContainer>> settableFuture);
+
+
+
+    /**
+     * Call to fetch the percentile replication in the different regions in the system.
+     *
+     * @param settableFuture settable future to wait upon.
+     */
+    public void getPercentileReplicationLag(SettableFuture<Result<PercentileLagDesignInfoContainer>> settableFuture);
 
 }
