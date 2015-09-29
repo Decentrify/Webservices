@@ -110,16 +110,8 @@ public class SimVisualizerLauncher extends ComponentDefinition{
     private void registerSerializers() {
 
         MessageRegistrator.register();
-
-        int currentId = 128;
-        currentId = BasicSerializerSetup.registerBasicSerializers(currentId);
-        currentId = CroupierSerializerSetup.registerSerializers(currentId);
-        currentId = GradientSerializerSetup.registerSerializers(currentId);
-        currentId = ElectionSerializerSetup.registerSerializers(currentId);
-        currentId = AggregatorSerializerSetup.registerSerializers(currentId);
-        currentId = ChunkManagerSerializerSetup.registerSerializers(currentId);
-        currentId = SweepSerializerSetup.registerSerializers(currentId);
-        currentId = GVoDSerializerSetup.registerSerializers(currentId);
+        int result = SweepSerializerSetup.registerSerializers(MsConfig.SIM_SERIALIZER_START);
+        AggregatorSerializerSetup.registerSerializers(result);
     }
     
     
