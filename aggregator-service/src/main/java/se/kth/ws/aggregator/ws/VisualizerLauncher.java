@@ -14,19 +14,14 @@ import se.sics.kompics.network.netty.NettyInit;
 import se.sics.kompics.network.netty.NettyNetwork;
 import se.sics.kompics.timer.Timer;
 import se.sics.kompics.timer.java.JavaTimer;
-import se.sics.ktoolbox.aggregator.global.api.ports.GlobalAggregatorPort;
-import se.sics.ktoolbox.aggregator.global.api.ports.VisualizerPort;
-import se.sics.ktoolbox.aggregator.global.api.system.DesignProcessor;
-import se.sics.ktoolbox.aggregator.global.core.GlobalAggregator;
-import se.sics.ktoolbox.aggregator.global.core.GlobalAggregatorInit;
-import se.sics.ktoolbox.aggregator.global.core.Visualizer;
-import se.sics.ktoolbox.aggregator.global.core.VisualizerInit;
-import se.sics.ktoolbox.aggregator.global.network.AggregatorSerializerSetup;
+import se.sics.ktoolbox.aggregator.AggregatorSerializerSetup;
+import se.sics.ktoolbox.aggregator.server.*;
+import se.sics.ktoolbox.aggregator.server.util.DesignProcessor;
 import se.sics.ktoolbox.ipsolver.IpSolverComp;
 import se.sics.ktoolbox.ipsolver.IpSolverPort;
 import se.sics.ktoolbox.ipsolver.msg.GetIp;
 import se.sics.ms.configuration.MsConfig;
-import se.sics.ms.net.SerializerSetup;
+import se.sics.ms.net.SweepSerializerSetup;
 import se.sics.p2ptoolbox.chunkmanager.ChunkManagerSerializerSetup;
 import se.sics.p2ptoolbox.croupier.CroupierSerializerSetup;
 import se.sics.p2ptoolbox.election.network.ElectionSerializerSetup;
@@ -110,7 +105,7 @@ public class VisualizerLauncher extends ComponentDefinition{
         currentId = ElectionSerializerSetup.registerSerializers(currentId);
         currentId = AggregatorSerializerSetup.registerSerializers(currentId);
         currentId = ChunkManagerSerializerSetup.registerSerializers(currentId);
-        currentId = SerializerSetup.registerSerializers(currentId);
+        currentId = SweepSerializerSetup.registerSerializers(currentId);
         currentId = GVoDSerializerSetup.registerSerializers(currentId);
     }
     
@@ -240,7 +235,6 @@ public class VisualizerLauncher extends ComponentDefinition{
         
         return result;
     }
-
 
     private void startWebservice() {
 

@@ -18,7 +18,7 @@
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <gvod>0.0.6-SNAPSHOT</gvod>
+        <gvod>0.0.7-SNAPSHOT</gvod>
                 
         <dropwizard.version>0.6.2</dropwizard.version>
         <jetty.version>8.1.10.v20130312</jetty.version>

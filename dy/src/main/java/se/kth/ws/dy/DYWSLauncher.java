@@ -41,6 +41,7 @@ import se.sics.kompics.network.netty.NettyInit;
 import se.sics.kompics.network.netty.NettyNetwork;
 import se.sics.kompics.timer.Timer;
 import se.sics.kompics.timer.java.JavaTimer;
+import se.sics.ktoolbox.aggregator.AggregatorSerializerSetup;
 import se.sics.ktoolbox.cc.bootstrap.CCBootstrapComp;
 import se.sics.ktoolbox.cc.bootstrap.CCBootstrapPort;
 import se.sics.ktoolbox.cc.bootstrap.msg.CCDisconnected;
@@ -52,12 +53,11 @@ import se.sics.ktoolbox.cc.heartbeat.CCHeartbeatPort;
 import se.sics.ktoolbox.ipsolver.IpSolverComp;
 import se.sics.ktoolbox.ipsolver.IpSolverPort;
 import se.sics.ktoolbox.ipsolver.msg.GetIp;
-import se.sics.ms.net.SerializerSetup;
+import se.sics.ms.net.SweepSerializerSetup;
 import se.sics.ms.ports.UiPort;
 import se.sics.ms.search.SearchPeer;
 import se.sics.ms.search.SearchPeerInit;
 import se.sics.ms.util.HeartbeatServiceEnum;
-import se.sics.p2ptoolbox.aggregator.network.AggregatorSerializerSetup;
 import se.sics.p2ptoolbox.chunkmanager.ChunkManagerConfig;
 import se.sics.p2ptoolbox.chunkmanager.ChunkManagerSerializerSetup;
 import se.sics.p2ptoolbox.croupier.CroupierConfig;
@@ -160,7 +160,7 @@ public class DYWSLauncher extends ComponentDefinition {
         currentId = ElectionSerializerSetup.registerSerializers(currentId);
         currentId = AggregatorSerializerSetup.registerSerializers(currentId);
         currentId = ChunkManagerSerializerSetup.registerSerializers(currentId);
-        currentId = SerializerSetup.registerSerializers(currentId);
+        currentId = SweepSerializerSetup.registerSerializers(currentId);
         currentId = GVoDSerializerSetup.registerSerializers(currentId);
     }
 
