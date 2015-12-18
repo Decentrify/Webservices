@@ -113,7 +113,6 @@ public class DYWS extends Service<Configuration> {
         LOG.error("WebPort: " + webPort);
 
         Thread t1 = new Thread(new Runnable() {
-            @Override
             public void run() {
                 launchTray(webPort);
             }
@@ -139,7 +138,6 @@ public class DYWS extends Service<Configuration> {
         }
 
         EventQueue.invokeLater(new Runnable() {
-            @Override
             public void run() {
 
                 try {
