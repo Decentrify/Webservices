@@ -41,6 +41,8 @@ import se.sics.gvod.common.util.VoDHeartbeatServiceEnum;
 import se.sics.gvod.manager.util.FileStatus;
 import se.sics.gvod.manager.toolbox.Result;
 import se.sics.gvod.manager.toolbox.VideoInfo;
+import se.sics.ktoolbox.util.identifiable.Identifier;
+import se.sics.ktoolbox.util.identifiable.basic.IntIdentifier;
 import se.sics.ws.gvod.util.ResponseStatusWSMapper;
 
 /**
@@ -174,12 +176,12 @@ public class GVoDRESTMsgs {
             }
         }
         
-        private int getRandomOverlayId() {
+        private Identifier getRandomOverlayId() {
             Random rand = new SecureRandom();
             byte[] randBytes = new byte[3];
             rand.nextBytes(randBytes);
             int overlayId = Ints.fromBytes(VoDHeartbeatServiceEnum.CROUPIER.getServiceId(), randBytes[0], randBytes[1], randBytes[2]);
-            return overlayId;
+            return new IntIdentifier(overlayId);
         }
     }
 

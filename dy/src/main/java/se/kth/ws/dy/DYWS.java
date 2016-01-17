@@ -19,9 +19,6 @@
 package se.kth.ws.dy;
 
 import com.google.common.util.concurrent.SettableFuture;
-import org.eclipse.jetty.server.Connector;
-import org.eclipse.jetty.server.Server;
-import se.kth.ws.sweep.core.SweepSyncI;
 import com.yammer.dropwizard.Service;
 import com.yammer.dropwizard.assets.AssetsBundle;
 import com.yammer.dropwizard.config.Bootstrap;
@@ -37,13 +34,13 @@ import java.util.concurrent.ExecutionException;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import se.kth.ws.gvod.GVoDRESTMsgs;
-import se.kth.ws.sweep.SweepRESTMsgs;
-import se.kth.ws.util.BareBonesBrowserLaunch;
 import se.kth.ws.util.TrayUI;
 import se.sics.gvod.manager.toolbox.GVoDSyncI;
 
 import javax.swing.*;
+import se.kth.ws.gvod.GVoDRESTMsgs;
+import se.kth.ws.sweep.SweepRESTMsgs;
+import se.kth.ws.sweep.core.SweepSyncI;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>

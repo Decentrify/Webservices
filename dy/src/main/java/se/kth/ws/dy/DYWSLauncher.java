@@ -34,7 +34,6 @@ import se.sics.gvod.config.SearchConfiguration;
 import se.sics.gvod.manager.toolbox.GVoDSyncI;
 import se.sics.gvod.network.GVoDSerializerSetup;
 import se.sics.gvod.system.HostManagerComp;
-import se.sics.gvod.system.HostManagerConfig;
 import se.sics.kompics.*;
 import se.sics.kompics.network.Network;
 import se.sics.kompics.network.netty.NettyInit;
@@ -43,11 +42,6 @@ import se.sics.kompics.timer.Timer;
 import se.sics.kompics.timer.java.JavaTimer;
 import se.sics.ktoolbox.aggregator.AggregatorSerializerSetup;
 import se.sics.ktoolbox.cc.bootstrap.CCBootstrapComp;
-import se.sics.ktoolbox.cc.bootstrap.CCBootstrapPort;
-import se.sics.ktoolbox.cc.bootstrap.msg.CCDisconnected;
-import se.sics.ktoolbox.cc.bootstrap.msg.CCReady;
-import se.sics.ktoolbox.cc.common.config.CaracalClientConfig;
-import se.sics.ktoolbox.cc.common.op.CCSimpleReady;
 import se.sics.ktoolbox.cc.heartbeat.CCHeartbeatComp;
 import se.sics.ktoolbox.cc.heartbeat.CCHeartbeatPort;
 import se.sics.ktoolbox.ipsolver.IpSolverComp;
@@ -58,25 +52,29 @@ import se.sics.ms.ports.UiPort;
 import se.sics.ms.search.SearchPeer;
 import se.sics.ms.search.SearchPeerInit;
 import se.sics.ms.util.HeartbeatServiceEnum;
-import se.sics.p2ptoolbox.chunkmanager.ChunkManagerConfig;
-import se.sics.p2ptoolbox.chunkmanager.ChunkManagerSerializerSetup;
-import se.sics.p2ptoolbox.croupier.CroupierConfig;
-import se.sics.p2ptoolbox.croupier.CroupierSerializerSetup;
-import se.sics.p2ptoolbox.election.core.ElectionConfig;
-import se.sics.p2ptoolbox.election.network.ElectionSerializerSetup;
-import se.sics.p2ptoolbox.gradient.GradientConfig;
-import se.sics.p2ptoolbox.gradient.GradientSerializerSetup;
-import se.sics.p2ptoolbox.tgradient.TreeGradientConfig;
-import se.sics.p2ptoolbox.util.config.SystemConfig;
-import se.sics.p2ptoolbox.util.helper.SystemConfigBuilder;
-import se.sics.p2ptoolbox.util.serializer.BasicSerializerSetup;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.SocketException;
 import java.util.EnumSet;
+import se.sics.gvod.system.HostManagerKCWrapper;
+import se.sics.ktoolbox.cc.bootstrap.CCOperationPort;
+import se.sics.ktoolbox.cc.bootstrap.event.status.CCBootstrapDisconnected;
+import se.sics.ktoolbox.cc.bootstrap.event.status.CCBootstrapReady;
+import se.sics.ktoolbox.cc.heartbeat.event.status.CCHeartbeatReady;
+import se.sics.ktoolbox.chunkmanager.ChunkManagerSerializerSetup;
+import se.sics.ktoolbox.croupier.CroupierSerializerSetup;
+import se.sics.ktoolbox.election.ElectionConfig;
+import se.sics.ktoolbox.election.ElectionSerializerSetup;
+import se.sics.ktoolbox.gradient.GradientSerializerSetup;
+import se.sics.ktoolbox.util.config.impl.SystemKCWrapper;
+import se.sics.ktoolbox.util.network.KAddress;
+import se.sics.ktoolbox.util.network.basic.BasicAddress;
+import se.sics.ktoolbox.util.network.nat.NatAwareAddressImpl;
+import se.sics.ktoolbox.util.setup.BasicSerializerSetup;
+import se.sics.ktoolbox.util.status.Status;
+import se.sics.ktoolbox.util.status.StatusPort;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>
@@ -100,17 +98,17 @@ public class DYWSLauncher extends ComponentDefinition {
     private Component sweepSyncComp;
     private Component vodHostComp;
     private DYWS dyWS;
-    private Config config;
-    private CaracalClientConfig ccConfig;
-
-    private SystemConfigBuilder builder;
-    private SystemConfig systemConfig;
     private Socket socket;
-
+    
+    //TODO Alex - fix self address
+    private InetAddress ip;
+    private int dyPort = 33445;
+    private KAddress self;
+    
+    private SystemKCWrapper systemConfig;
+        
     private SettableFuture<GVoDSyncI> gvodSyncIFuture;
     private SweepSyncI sweepSyncI;
-
-    private HostManagerConfig gvodConfig;
 
     byte[] vodSchemaId = null;
     //**************************************************************************
@@ -123,6 +121,8 @@ public class DYWSLauncher extends ComponentDefinition {
         }
         gvodSyncIFuture = SettableFuture.create();
         registerSerializers();
+        
+        systemConfig = new SystemKCWrapper(config());
 
         subscribe(handleStart, control);
         subscribe(handleStop, control);
@@ -178,18 +178,14 @@ public class DYWSLauncher extends ComponentDefinition {
         public void handle(GetIp.Resp resp) {
             LOG.info("starting: setting up caracal connection");
 
-            InetAddress ip = null;
             if (!resp.addrs.isEmpty()) {
                 ip = resp.addrs.get(0).getAddr();
                 if (resp.addrs.size() > 1) {
                     LOG.warn("multiple ips detected, proceeding with:{}", ip);
                 }
+            } else {
+                throw new RuntimeException("ip not detected");
             }
-
-            config = ConfigFactory.load();
-            ccConfig = new CaracalClientConfig(config);
-            gvodConfig = new HostManagerConfig(config, ip);
-            builder = new SystemConfigBuilder(config).setSelfIp(ip);
 
             phase2();
         }
@@ -205,8 +201,8 @@ public class DYWSLauncher extends ComponentDefinition {
         connectCaracalClient();
         connectHeartbeat();
 
-        subscribe(handleCaracalDisconnect, caracalClientComp.getPositive(CCBootstrapPort.class));
-        subscribe(handleCaracalReady, caracalClientComp.getPositive(CCBootstrapPort.class));
+        subscribe(handleCaracalDisconnect, caracalClientComp.getPositive(StatusPort.class));
+        subscribe(handleCaracalReady, caracalClientComp.getPositive(StatusPort.class));
         subscribe(handleHeartbeatReady, heartbeatComp.getPositive(CCHeartbeatPort.class));
     }
 
@@ -218,14 +214,9 @@ public class DYWSLauncher extends ComponentDefinition {
 
 //      Initiate the socket bind operation.
         initiateSocketBind();
-        LOG.debug("Socket successfully sound to ip :{} and port: {}", builder.getSelfIp(), builder.getSelfPort());
+        LOG.debug("Socket successfully sound to ip :{} and port: {}", ip, dyPort);
 
-//      Once the port and identifier are set build the configuration.
-        LOG.debug("Building the system configuration.");
-        systemConfig = builder.build();
     }
-
-
 
     /**
      * Try to bind on the socket and keep a
@@ -234,28 +225,24 @@ public class DYWSLauncher extends ComponentDefinition {
     private void initiateSocketBind() {
 
         LOG.debug("Initiating the binding on the socket to keep the port being used by some other service.");
-        InetAddress selfIp = builder.getSelfIp();
 
         int retries = BIND_RETRY;
         while (retries > 0) {
 
 //          Port gets updated, so needs to be reset.
-            Integer selfPort = builder.getSelfPort();
 
             try {
 
-                LOG.debug("Trying to bind on the socket1 with ip: {} and port: {}", selfIp, selfPort);
-                bindOperation(selfIp, selfPort);
+                LOG.debug("Trying to bind on the socket1 with ip: {} and port: {}", ip, dyPort);
+                bindOperation(ip, dyPort);
                 break;  // If exception is not thrown, break the loop.
             }
 
             catch (IOException e) {
-
+                retries--;
                 LOG.debug("Socket Bind failed, retrying.");
-                builder.setPort();
+                throw new RuntimeException("could not bind on dy port");
             }
-
-            retries--;
         }
 
         if(retries <= 0) {
@@ -289,33 +276,32 @@ public class DYWSLauncher extends ComponentDefinition {
             this.socket.close();
     }
 
-
-
     private void connectNetwork() {
-        networkComp = create(NettyNetwork.class, new NettyInit(systemConfig.self));
+        self = NatAwareAddressImpl.open(new BasicAddress(ip, dyPort, systemConfig.id));
+        networkComp = create(NettyNetwork.class, new NettyInit(self));
         trigger(Start.event, networkComp.control());
     }
 
     private void connectCaracalClient() {
 
-        caracalClientComp = create(CCBootstrapComp.class, new CCBootstrapComp.CCBootstrapInit(systemConfig, ccConfig, BootstrapNodes.readCaracalBootstrap(config)));
-        connect(caracalClientComp.getNegative(Timer.class), timerComp.getPositive(Timer.class));
-        connect(caracalClientComp.getNegative(Network.class), networkComp.getPositive(Network.class));
+        caracalClientComp = create(CCBootstrapComp.class, new CCBootstrapComp.CCBootstrapInit(self));
+        connect(caracalClientComp.getNegative(Timer.class), timerComp.getPositive(Timer.class), Channel.TWO_WAY);
+        connect(caracalClientComp.getNegative(Network.class), networkComp.getPositive(Network.class), Channel.TWO_WAY);
         trigger(Start.event, caracalClientComp.control());
     }
 
     private void connectHeartbeat() {
-        heartbeatComp = create(CCHeartbeatComp.class, new CCHeartbeatComp.CCHeartbeatInit(systemConfig, ccConfig));
-        connect(heartbeatComp.getNegative(Timer.class), timerComp.getPositive(Timer.class));
-        connect(heartbeatComp.getNegative(CCBootstrapPort.class), caracalClientComp.getPositive(CCBootstrapPort.class));
+        heartbeatComp = create(CCHeartbeatComp.class, new CCHeartbeatComp.CCHeartbeatInit(self));
+        connect(heartbeatComp.getNegative(Timer.class), timerComp.getPositive(Timer.class), Channel.TWO_WAY);
+        connect(heartbeatComp.getNegative(CCOperationPort.class), caracalClientComp.getPositive(CCOperationPort.class), Channel.TWO_WAY);
         trigger(Start.event, heartbeatComp.control());
     }
 
-    private Handler handleCaracalReady = new Handler<CCReady>() {
+    private Handler handleCaracalReady = new Handler<Status.Internal<CCBootstrapReady>>() {
         @Override
-        public void handle(CCReady event) {
+        public void handle(Status.Internal<CCBootstrapReady> event) {
             LOG.info("starting: received schemas");
-            vodSchemaId = event.caracalSchemaData.getId("gvod.metadata");
+            vodSchemaId = event.status.caracalSchemaData.getId("gvod.metadata");
             if (vodSchemaId == null) {
                 LOG.error("exception:vod schema undefined shutting down");
                 System.exit(1);
@@ -330,9 +316,9 @@ public class DYWSLauncher extends ComponentDefinition {
     /**
      * Caracal client gets disconnected.
      */
-    private Handler<CCDisconnected> handleCaracalDisconnect = new Handler<CCDisconnected>() {
+    private Handler handleCaracalDisconnect = new Handler<Status.Internal<CCBootstrapDisconnected>>() {
         @Override
-        public void handle(CCDisconnected event) {
+        public void handle(Status.Internal<CCBootstrapDisconnected> event) {
 
             LOG.debug("Caracal client disconnected, need to initiate counter measures.");
 
@@ -345,9 +331,9 @@ public class DYWSLauncher extends ComponentDefinition {
 
 
 
-    private Handler handleHeartbeatReady = new Handler<CCSimpleReady>() {
+    private Handler handleHeartbeatReady = new Handler<Status.Internal<CCHeartbeatReady>>() {
         @Override
-        public void handle(CCSimpleReady e) {
+        public void handle(Status.Internal<CCHeartbeatReady> e) {
             LOG.info("starting: system");
             phase3();
         }
@@ -361,27 +347,23 @@ public class DYWSLauncher extends ComponentDefinition {
     }
 
     private void connectVoDHost() {
-        vodHostComp = create(HostManagerComp.class, new HostManagerComp.HostManagerInit(gvodConfig, gvodSyncIFuture, vodSchemaId));
-        connect(vodHostComp.getNegative(Network.class), networkComp.getPositive(Network.class));
-        connect(vodHostComp.getNegative(Timer.class), timerComp.getPositive(Timer.class));
-        connect(vodHostComp.getNegative(CCBootstrapPort.class), caracalClientComp.getPositive(CCBootstrapPort.class));
-        connect(vodHostComp.getNegative(CCHeartbeatPort.class), heartbeatComp.getPositive(CCHeartbeatPort.class));
+        vodHostComp = create(HostManagerComp.class, new HostManagerComp.HostManagerInit(new HostManagerKCWrapper(config(), self), 
+                gvodSyncIFuture, vodSchemaId));
+        connect(vodHostComp.getNegative(Network.class), networkComp.getPositive(Network.class), Channel.TWO_WAY);
+        connect(vodHostComp.getNegative(Timer.class), timerComp.getPositive(Timer.class), Channel.TWO_WAY);
+        connect(vodHostComp.getNegative(CCOperationPort.class), caracalClientComp.getPositive(CCOperationPort.class), Channel.TWO_WAY);
+        connect(vodHostComp.getNegative(CCHeartbeatPort.class), heartbeatComp.getPositive(CCHeartbeatPort.class), Channel.TWO_WAY);
         trigger(Start.event, vodHostComp.control());
     }
 
     private void connectSweep() {
-        GradientConfig gradientConfig = new GradientConfig(config);
-        CroupierConfig croupierConfig = new CroupierConfig(config);
-        ElectionConfig electionConfig = new ElectionConfig(config);
-        ChunkManagerConfig chunkManagerConfig = new ChunkManagerConfig(config);
-        TreeGradientConfig treeGradientConfig = new TreeGradientConfig(config);
+        ElectionConfig electionConfig = new ElectionConfig(ConfigFactory.load());
 
-        sweepHostComp = create(SearchPeer.class, new SearchPeerInit(systemConfig, croupierConfig,
-                SearchConfiguration.build(), GradientConfiguration.build(),
-                chunkManagerConfig, gradientConfig, electionConfig, treeGradientConfig));
-        connect(sweepHostComp.getNegative(Timer.class), timerComp.getPositive(Timer.class));
-        connect(sweepHostComp.getNegative(Network.class), networkComp.getPositive(Network.class));
-        connect(sweepHostComp.getNegative(CCHeartbeatPort.class), heartbeatComp.getPositive(CCHeartbeatPort.class));
+        sweepHostComp = create(SearchPeer.class, new SearchPeerInit(self, SearchConfiguration.build(),
+                electionConfig, GradientConfiguration.build()));
+        connect(sweepHostComp.getNegative(Timer.class), timerComp.getPositive(Timer.class), Channel.TWO_WAY);
+        connect(sweepHostComp.getNegative(Network.class), networkComp.getPositive(Network.class), Channel.TWO_WAY);
+        connect(sweepHostComp.getNegative(CCHeartbeatPort.class), heartbeatComp.getPositive(CCHeartbeatPort.class), Channel.TWO_WAY);
         trigger(Start.event, sweepHostComp.control());
     }
 
@@ -397,6 +379,7 @@ public class DYWSLauncher extends ComponentDefinition {
 
         try {
             dyWS = new DYWS(sweepSyncI, gvodSyncIFuture);
+            Config config = ConfigFactory.load();
             String[] args = new String[]{"server", config.getString("webservice.server")};
             dyWS.run(args);
         } catch (ConfigException.Missing ex) {

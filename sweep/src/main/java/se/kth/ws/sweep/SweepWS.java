@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
  */
 public class SweepWS extends Service<Configuration> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(SweepWSLauncher.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SweepWS.class);
 
     private SweepSyncI sweepSyncI;
 
