@@ -194,7 +194,7 @@ public class DYWSLauncher extends ComponentDefinition {
     private void phase2() {
 
 //      Initiate the socket bind operation.
-        buildSysConfig();
+//        buildSysConfig();
 
 //      Start connecting the network and other components.
         connectNetwork();
@@ -203,7 +203,7 @@ public class DYWSLauncher extends ComponentDefinition {
 
         subscribe(handleCaracalDisconnect, caracalClientComp.getPositive(StatusPort.class));
         subscribe(handleCaracalReady, caracalClientComp.getPositive(StatusPort.class));
-        subscribe(handleHeartbeatReady, heartbeatComp.getPositive(CCHeartbeatPort.class));
+        subscribe(handleHeartbeatReady, heartbeatComp.getPositive(StatusPort.class));
     }
 
 
@@ -278,6 +278,7 @@ public class DYWSLauncher extends ComponentDefinition {
 
     private void connectNetwork() {
         self = NatAwareAddressImpl.open(new BasicAddress(ip, dyPort, systemConfig.id));
+        LOG.info("starting with self local address:{}", self);
         networkComp = create(NettyNetwork.class, new NettyInit(self));
         trigger(Start.event, networkComp.control());
     }
@@ -294,6 +295,7 @@ public class DYWSLauncher extends ComponentDefinition {
         heartbeatComp = create(CCHeartbeatComp.class, new CCHeartbeatComp.CCHeartbeatInit(self));
         connect(heartbeatComp.getNegative(Timer.class), timerComp.getPositive(Timer.class), Channel.TWO_WAY);
         connect(heartbeatComp.getNegative(CCOperationPort.class), caracalClientComp.getPositive(CCOperationPort.class), Channel.TWO_WAY);
+        connect(heartbeatComp.getNegative(StatusPort.class), caracalClientComp.getPositive(StatusPort.class), Channel.TWO_WAY);
         trigger(Start.event, heartbeatComp.control());
     }
 
