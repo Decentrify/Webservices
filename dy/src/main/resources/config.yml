@@ -17,13 +17,13 @@ logging:
     "se.sics.ktoolbox.cc.bootstrap.CCBootstrapComp": INFO
     "se.sics.ktoolbox.cc.heartbeat.CCHeartbeatComp": INFO
     "se.sics.ktoolbox.cc.common.config.CaracalClientConfig": INFO
-    "se.sics.p2ptoolbox.croupier.core.Croupier" : INFO
+    "se.sics.ktoolbox.croupier.CroupierComp" : TRACE
     "se.sics.gvod.system.HostManagerComp": INFO
     "se.sics.gvod.core.VoDComp": INFO
     "se.sics.gvod.core.connMngr.ConnMngrComp": INFO
     "se.sics.gvod.core.downloadMngr.DownloadMngrComp": INFO
     "se.sics.gvod.manager.VoDManager": INFO
-    "se.sics.p2ptoolbox.election.core.ElectionLeader": DEBUG
+    "se.sics.ktoolbox.election.core.ElectionLeader": DEBUG
     
   console:
       enabled: true
