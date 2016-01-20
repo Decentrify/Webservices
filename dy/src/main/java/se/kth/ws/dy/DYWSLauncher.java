@@ -102,7 +102,6 @@ public class DYWSLauncher extends ComponentDefinition {
     
     //TODO Alex - fix self address
     private InetAddress ip;
-    private int dyPort = 33445;
     private KAddress self;
     
     private SystemKCWrapper systemConfig;
@@ -210,47 +209,46 @@ public class DYWSLauncher extends ComponentDefinition {
     /**
      * Start building the system configuration.
      */
-    private void buildSysConfig(){
-
+//    private void buildSysConfig(){
+//
 //      Initiate the socket bind operation.
-        initiateSocketBind();
-        LOG.debug("Socket successfully sound to ip :{} and port: {}", ip, dyPort);
-
-    }
-
-    /**
-     * Try to bind on the socket and keep a
-     * reference of the socket.
-     */
-    private void initiateSocketBind() {
-
-        LOG.debug("Initiating the binding on the socket to keep the port being used by some other service.");
-
-        int retries = BIND_RETRY;
-        while (retries > 0) {
-
-//          Port gets updated, so needs to be reset.
-
-            try {
-
-                LOG.debug("Trying to bind on the socket1 with ip: {} and port: {}", ip, dyPort);
-                bindOperation(ip, dyPort);
-                break;  // If exception is not thrown, break the loop.
-            }
-
-            catch (IOException e) {
-                retries--;
-                LOG.debug("Socket Bind failed, retrying.");
-                throw new RuntimeException("could not bind on dy port");
-            }
-        }
-
-        if(retries <= 0) {
-            LOG.error("Unable to bind on a socket, exiting.");
-            throw new RuntimeException("Unable to identify port for the socket to bind on.");
-        }
-
-    }
+//        initiateSocketBind();
+//        LOG.debug("Socket successfully sound to ip :{} and port: {}", ip, dyPort);
+//    }
+//
+//    /**
+//     * Try to bind on the socket and keep a
+//     * reference of the socket.
+//     */
+//    private void initiateSocketBind() {
+//
+//        LOG.debug("Initiating the binding on the socket to keep the port being used by some other service.");
+//
+//        int retries = BIND_RETRY;
+//        while (retries > 0) {
+//
+////          Port gets updated, so needs to be reset.
+//
+//            try {
+//
+//                LOG.debug("Trying to bind on the socket1 with ip: {} and port: {}", ip, dyPort);
+//                bindOperation(ip, dyPort);
+//                break;  // If exception is not thrown, break the loop.
+//            }
+//
+//            catch (IOException e) {
+//                retries--;
+//                LOG.debug("Socket Bind failed, retrying.");
+//                throw new RuntimeException("could not bind on dy port");
+//            }
+//        }
+//
+//        if(retries <= 0) {
+//            LOG.error("Unable to bind on a socket, exiting.");
+//            throw new RuntimeException("Unable to identify port for the socket to bind on.");
+//        }
+//
+//    }
 
     /**
      * Based on the ip and port, create a socket to bind on that address and port.
@@ -277,7 +275,7 @@ public class DYWSLauncher extends ComponentDefinition {
     }
 
     private void connectNetwork() {
-        self = NatAwareAddressImpl.open(new BasicAddress(ip, dyPort, systemConfig.id));
+        self = NatAwareAddressImpl.open(new BasicAddress(ip, systemConfig.port, systemConfig.id));
         LOG.info("starting with self local address:{}", self);
         networkComp = create(NettyNetwork.class, new NettyInit(self));
         trigger(Start.event, networkComp.control());

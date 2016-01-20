@@ -17,7 +17,7 @@ logging:
     "se.sics.ktoolbox.cc.bootstrap.CCBootstrapComp": INFO
     "se.sics.ktoolbox.cc.heartbeat.CCHeartbeatComp": INFO
     "se.sics.ktoolbox.cc.common.config.CaracalClientConfig": INFO
-    "se.sics.ktoolbox.croupier.CroupierComp" : TRACE
+    "se.sics.ktoolbox.croupier.CroupierComp" : WARN
     "se.sics.gvod.system.HostManagerComp": INFO
     "se.sics.gvod.core.VoDComp": INFO
     "se.sics.gvod.core.connMngr.ConnMngrComp": INFO
