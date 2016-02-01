@@ -176,12 +176,12 @@ public class GVoDRESTMsgs {
             }
         }
         
-        private Identifier getRandomOverlayId() {
+        private int getRandomOverlayId() {
             Random rand = new SecureRandom();
             byte[] randBytes = new byte[3];
             rand.nextBytes(randBytes);
             int overlayId = Ints.fromBytes(VoDHeartbeatServiceEnum.CROUPIER.getServiceId(), randBytes[0], randBytes[1], randBytes[2]);
-            return new IntIdentifier(overlayId);
+            return overlayId;
         }
     }
 
@@ -426,7 +426,7 @@ public class GVoDRESTMsgs {
         @GET
         public Response caracalStatus(){
 
-            LOG.info("Received request to return the status of the caracal server.");
+            LOG.debug("Received request to return the status of the caracal server.");
             return Response.status(Response.Status.OK).entity(isServerDown.get()).build();
         }
 

@@ -7,23 +7,29 @@ http:
 logging:
 
   # The default level of all loggers. Can be OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.
-  level: INFO
+  level: TRACE
 
   # Logger-specific levels.
   loggers:
     # Sets the level for 'com.example.app' to DEBUG.
+    "java.awt": INFO
     "Kompics": INFO
-    "se.sics.kompics.timer.java.JavaTimer": INFO
-    "se.sics.ktoolbox.cc.bootstrap.CCBootstrapComp": INFO
-    "se.sics.ktoolbox.cc.heartbeat.CCHeartbeatComp": INFO
-    "se.sics.ktoolbox.cc.common.config.CaracalClientConfig": INFO
-    "se.sics.ktoolbox.croupier.CroupierComp" : WARN
-    "se.sics.gvod.system.HostManagerComp": INFO
-    "se.sics.gvod.core.VoDComp": INFO
-    "se.sics.gvod.core.connMngr.ConnMngrComp": INFO
-    "se.sics.gvod.core.downloadMngr.DownloadMngrComp": INFO
-    "se.sics.gvod.manager.VoDManager": INFO
-    "se.sics.ktoolbox.election.core.ElectionLeader": DEBUG
+    "se.sics.kompics.network.netty": INFO
+#    "se.sics.kompics.timer.java.JavaTimer": INFO
+#    "se.sics.ktoolbox.cc.bootstrap": WARN
+#    "se.sics.ktoolbox.cc.heartbeat": WARN
+#    "se.sics.ktoolbox.cc.common.config.CaracalClientConfig": INFO
+#    "se.sics.ktoolbox.croupier": WARN
+#    "se.sics.ktoolbox.gradient": WARN
+#    "se.sics.ktoolbox.tgradient": WARN
+#    "se.sics.gvod.system.HostManagerComp": INFO
+#    "se.sics.gvod.core.VoDComp": TRACE
+#    "se.sics.gvod.core.connMngr.ConnMngrComp": INFO
+#    "se.sics.gvod.core.downloadMngr.DownloadMngrComp": INFO
+#    "se.sics.ktoolbox.election.core.ElectionLeader": WARN
+#    "se.sics.gvod.manager.VoDManager": INFO
+#    "se.kth.ws.gvod.GVoDWS": INFO
+#    "se.sics.gvod.cc.VoDCaracalClientComp": TRACE
     
   console:
       enabled: true

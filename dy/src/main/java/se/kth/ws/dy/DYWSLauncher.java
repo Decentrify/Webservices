@@ -87,7 +87,7 @@ public class DYWSLauncher extends ComponentDefinition {
     public static void setIpType(GetIp.NetworkInterfacesMask setIpType) {
         ipType = setIpType;
     }
-    private static final int BIND_RETRY =3;
+    private static final int BIND_RETRY = 3;
 
     private Component timerComp;
     private Component ipSolverComp;
@@ -99,13 +99,13 @@ public class DYWSLauncher extends ComponentDefinition {
     private Component vodHostComp;
     private DYWS dyWS;
     private Socket socket;
-    
+
     //TODO Alex - fix self address
     private InetAddress ip;
     private KAddress self;
-    
+
     private SystemKCWrapper systemConfig;
-        
+
     private SettableFuture<GVoDSyncI> gvodSyncIFuture;
     private SweepSyncI sweepSyncI;
 
@@ -120,7 +120,7 @@ public class DYWSLauncher extends ComponentDefinition {
         }
         gvodSyncIFuture = SettableFuture.create();
         registerSerializers();
-        
+
         systemConfig = new SystemKCWrapper(config());
 
         subscribe(handleStart, control);
@@ -194,7 +194,6 @@ public class DYWSLauncher extends ComponentDefinition {
 
 //      Initiate the socket bind operation.
 //        buildSysConfig();
-
 //      Start connecting the network and other components.
         connectNetwork();
         connectCaracalClient();
@@ -204,7 +203,6 @@ public class DYWSLauncher extends ComponentDefinition {
         subscribe(handleCaracalReady, caracalClientComp.getPositive(StatusPort.class));
         subscribe(handleHeartbeatReady, heartbeatComp.getPositive(StatusPort.class));
     }
-
 
     /**
      * Start building the system configuration.
@@ -249,31 +247,30 @@ public class DYWSLauncher extends ComponentDefinition {
 //        }
 //
 //    }
-
-    /**
-     * Based on the ip and port, create a socket to bind on that address and port.
-     * @param selfIp ip-address
-     * @param selfPort port
-     * @throws IOException
-     */
-    private void bindOperation(InetAddress selfIp, Integer selfPort) throws IOException {
-
-        socket = new Socket();
-        socket.setReuseAddress(true);
-        socket.bind(new InetSocketAddress(selfIp, selfPort));
-    }
-
-
-    /**
-     * The method is used to release the socket by initiating
-     * close method on the socket.
-     */
-    private void releaseSocket() throws IOException {
-
-        if(this.socket != null && !this.socket.isClosed())
-            this.socket.close();
-    }
-
+//
+//    /**
+//     * Based on the ip and port, create a socket to bind on that address and port.
+//     * @param selfIp ip-address
+//     * @param selfPort port
+//     * @throws IOException
+//     */
+//    private void bindOperation(InetAddress selfIp, Integer selfPort) throws IOException {
+//
+//        socket = new Socket();
+//        socket.setReuseAddress(true);
+//        socket.bind(new InetSocketAddress(selfIp, selfPort));
+//    }
+//
+//
+//    /**
+//     * The method is used to release the socket by initiating
+//     * close method on the socket.
+//     */
+//    private void releaseSocket() throws IOException {
+//
+//        if(this.socket != null && !this.socket.isClosed())
+//            this.socket.close();
+//    }
     private void connectNetwork() {
         self = NatAwareAddressImpl.open(new BasicAddress(ip, systemConfig.port, systemConfig.id));
         LOG.info("starting with self local address:{}", self);
@@ -297,39 +294,42 @@ public class DYWSLauncher extends ComponentDefinition {
         trigger(Start.event, heartbeatComp.control());
     }
 
-    private Handler handleCaracalReady = new Handler<Status.Internal<CCBootstrapReady>>() {
-        @Override
-        public void handle(Status.Internal<CCBootstrapReady> event) {
-            LOG.info("starting: received schemas");
-            vodSchemaId = event.status.caracalSchemaData.getId("gvod.metadata");
-            if (vodSchemaId == null) {
-                LOG.error("exception:vod schema undefined shutting down");
-                System.exit(1);
-            }
+    ClassMatchedHandler handleCaracalReady
+            = new ClassMatchedHandler<CCBootstrapReady, Status.Internal<CCBootstrapReady>>() {
 
-            if(dyWS != null){
-                dyWS.setIsServerDown(false);
-            }
-        }
-    };
+                @Override
+                public void handle(CCBootstrapReady content, Status.Internal<CCBootstrapReady> container) {
+
+                    LOG.info("starting: received schemas");
+                    vodSchemaId = content.caracalSchemaData.getId("gvod.metadata");
+                    if (vodSchemaId == null) {
+                        LOG.error("exception:vod schema undefined shutting down");
+                        System.exit(1);
+                    }
+
+                    if (dyWS != null) {
+                        dyWS.setIsServerDown(false);
+                    }
+                }
+            };
 
     /**
      * Caracal client gets disconnected.
      */
-    private Handler handleCaracalDisconnect = new Handler<Status.Internal<CCBootstrapDisconnected>>() {
-        @Override
-        public void handle(Status.Internal<CCBootstrapDisconnected> event) {
+    ClassMatchedHandler handleCaracalDisconnect
+            = new ClassMatchedHandler<CCBootstrapDisconnected, Status.Internal<CCBootstrapDisconnected>>() {
 
-            LOG.debug("Caracal client disconnected, need to initiate counter measures.");
+                @Override
+                public void handle(CCBootstrapDisconnected content, Status.Internal<CCBootstrapDisconnected> container) {
 
-//          Inform the web service if it has already been booted.
-            if(dyWS != null){
-                dyWS.setIsServerDown(true);
-            }
-        }
-    };
+                    LOG.debug("Caracal client disconnected, need to initiate counter measures.");
 
-
+                    //Inform the web service if it has already been booted.
+                    if (dyWS != null) {
+                        dyWS.setIsServerDown(true);
+                    }
+                }
+            };
 
     private Handler handleHeartbeatReady = new Handler<Status.Internal<CCHeartbeatReady>>() {
         @Override
@@ -347,7 +347,7 @@ public class DYWSLauncher extends ComponentDefinition {
     }
 
     private void connectVoDHost() {
-        vodHostComp = create(HostManagerComp.class, new HostManagerComp.HostManagerInit(new HostManagerKCWrapper(config(), self), 
+        vodHostComp = create(HostManagerComp.class, new HostManagerComp.HostManagerInit(new HostManagerKCWrapper(config(), self),
                 gvodSyncIFuture, vodSchemaId));
         connect(vodHostComp.getNegative(Network.class), networkComp.getPositive(Network.class), Channel.TWO_WAY);
         connect(vodHostComp.getNegative(Timer.class), timerComp.getPositive(Timer.class), Channel.TWO_WAY);
