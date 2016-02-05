@@ -65,6 +65,7 @@ import se.sics.ktoolbox.cc.bootstrap.event.status.CCBootstrapReady;
 import se.sics.ktoolbox.cc.heartbeat.event.status.CCHeartbeatReady;
 import se.sics.ktoolbox.chunkmanager.ChunkManagerSerializerSetup;
 import se.sics.ktoolbox.croupier.CroupierSerializerSetup;
+import se.sics.ktoolbox.croupier.util.CroupierPortRegistry;
 import se.sics.ktoolbox.election.ElectionConfig;
 import se.sics.ktoolbox.election.ElectionSerializerSetup;
 import se.sics.ktoolbox.gradient.GradientSerializerSetup;
@@ -120,6 +121,7 @@ public class DYWSLauncher extends ComponentDefinition {
         }
         gvodSyncIFuture = SettableFuture.create();
         registerSerializers();
+        registerPortTracking();
 
         systemConfig = new SystemKCWrapper(config());
 
@@ -161,6 +163,10 @@ public class DYWSLauncher extends ComponentDefinition {
         currentId = ChunkManagerSerializerSetup.registerSerializers(currentId);
         currentId = SweepSerializerSetup.registerSerializers(currentId);
         currentId = GVoDSerializerSetup.registerSerializers(currentId);
+    }
+    
+    private void registerPortTracking() {
+        CroupierPortRegistry.register();
     }
 
     private void phase1() {

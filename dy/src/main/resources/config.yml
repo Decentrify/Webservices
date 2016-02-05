@@ -7,29 +7,15 @@ http:
 logging:
 
   # The default level of all loggers. Can be OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.
-  level: TRACE
+  level: WARN
 
   # Logger-specific levels.
   loggers:
     # Sets the level for 'com.example.app' to DEBUG.
-    "java.awt": INFO
-    "Kompics": INFO
+    "java.awt": WARN
+    "Kompics": WARN
     "se.sics.kompics.network.netty": INFO
-#    "se.sics.kompics.timer.java.JavaTimer": INFO
-#    "se.sics.ktoolbox.cc.bootstrap": WARN
-#    "se.sics.ktoolbox.cc.heartbeat": WARN
-#    "se.sics.ktoolbox.cc.common.config.CaracalClientConfig": INFO
-#    "se.sics.ktoolbox.croupier": WARN
-#    "se.sics.ktoolbox.gradient": WARN
-#    "se.sics.ktoolbox.tgradient": WARN
-#    "se.sics.gvod.system.HostManagerComp": INFO
-#    "se.sics.gvod.core.VoDComp": TRACE
-#    "se.sics.gvod.core.connMngr.ConnMngrComp": INFO
-#    "se.sics.gvod.core.downloadMngr.DownloadMngrComp": INFO
-#    "se.sics.ktoolbox.election.core.ElectionLeader": WARN
-#    "se.sics.gvod.manager.VoDManager": INFO
-#    "se.kth.ws.gvod.GVoDWS": INFO
-#    "se.sics.gvod.cc.VoDCaracalClientComp": TRACE
+    "se.sics.ktoolbox.croupier": DEBUG 
     
   console:
       enabled: true
