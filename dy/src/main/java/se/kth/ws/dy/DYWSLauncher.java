@@ -65,10 +65,13 @@ import se.sics.ktoolbox.cc.bootstrap.event.status.CCBootstrapReady;
 import se.sics.ktoolbox.cc.heartbeat.event.status.CCHeartbeatReady;
 import se.sics.ktoolbox.chunkmanager.ChunkManagerSerializerSetup;
 import se.sics.ktoolbox.croupier.CroupierSerializerSetup;
-import se.sics.ktoolbox.croupier.util.CroupierPortRegistry;
+import se.sics.ktoolbox.croupier.aggregation.CroupierAggregation;
 import se.sics.ktoolbox.election.ElectionConfig;
 import se.sics.ktoolbox.election.ElectionSerializerSetup;
+import se.sics.ktoolbox.election.aggregation.ElectionAggregation;
 import se.sics.ktoolbox.gradient.GradientSerializerSetup;
+import se.sics.ktoolbox.gradient.aggregation.GradientAggregation;
+import se.sics.ktoolbox.util.aggregation.BasicAggregation;
 import se.sics.ktoolbox.util.config.impl.SystemKCWrapper;
 import se.sics.ktoolbox.util.network.KAddress;
 import se.sics.ktoolbox.util.network.basic.BasicAddress;
@@ -166,7 +169,10 @@ public class DYWSLauncher extends ComponentDefinition {
     }
     
     private void registerPortTracking() {
-        CroupierPortRegistry.register();
+        BasicAggregation.registerPorts();
+        CroupierAggregation.registerPorts();
+        GradientAggregation.registerPorts();
+        ElectionAggregation.registerPorts();
     }
 
     private void phase1() {
