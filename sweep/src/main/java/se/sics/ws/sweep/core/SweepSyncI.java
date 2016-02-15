@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package se.kth.ws.sweep.core;
+package se.sics.ws.sweep.core;
 
 import com.google.common.util.concurrent.SettableFuture;
 import java.util.ArrayList;
@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import se.sics.ms.events.paginateAware.UiSearchResponse;
 import se.sics.ms.types.IndexEntry;
 import se.sics.ms.types.SearchPattern;
-import se.kth.ws.sweep.core.util.Result;
+import se.sics.ws.sweep.core.util.Result;
 import se.sics.ms.types.ApplicationEntry;
 import se.sics.ws.sweep.model.PaginationJSON;
 

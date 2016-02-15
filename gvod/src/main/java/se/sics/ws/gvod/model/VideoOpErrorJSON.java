@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package se.kth.ws.gvod.model;
+package se.sics.ws.gvod.model;
 
 import se.sics.gvod.manager.toolbox.VideoInfo;
 

@@ -17,13 +17,13 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package se.kth.ws.sweep.core;
+package se.sics.ws.sweep.core;
 
 import com.google.common.util.concurrent.SettableFuture;
 import java.util.ArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import se.kth.ws.sweep.core.util.Result;
+import se.sics.ws.sweep.core.util.Result;
 import se.sics.kompics.Component;
 import se.sics.kompics.Component.State;
 import se.sics.kompics.ComponentDefinition;

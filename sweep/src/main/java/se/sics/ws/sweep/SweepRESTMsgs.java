@@ -16,9 +16,9 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package se.kth.ws.sweep;
+package se.sics.ws.sweep;
 
-import se.kth.ws.sweep.core.SweepSyncI;
+import se.sics.ws.sweep.core.SweepSyncI;
 import com.google.common.util.concurrent.SettableFuture;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,7 +38,7 @@ import se.sics.ms.types.IndexEntry;
 import se.sics.ms.types.SearchPattern;
 import se.sics.ms.util.PaginateInfo;
 import se.sics.ws.sweep.model.*;
-import se.kth.ws.sweep.core.util.Result;
+import se.sics.ws.sweep.core.util.Result;
 import se.sics.ms.types.ApplicationEntry;
 import se.sics.ws.sweep.util.ResponseStatusWSMapper;
 

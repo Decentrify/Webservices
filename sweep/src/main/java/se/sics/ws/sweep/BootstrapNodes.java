@@ -1,4 +1,4 @@
-package se.kth.ws.sweep;
+package se.sics.ws.sweep;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigException;

@@ -16,16 +16,14 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package se.kth.ws.gvod;
+package se.sics.ws.sweep;
 
-import se.sics.gvod.manager.toolbox.GVoDSyncI;
-import com.google.common.util.concurrent.SettableFuture;
+import se.sics.ws.sweep.core.SweepSyncI;
 import com.yammer.dropwizard.Service;
 import com.yammer.dropwizard.assets.AssetsBundle;
 import com.yammer.dropwizard.config.Bootstrap;
 import com.yammer.dropwizard.config.Configuration;
 import com.yammer.dropwizard.config.Environment;
-import java.util.concurrent.ExecutionException;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,44 +31,25 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Alex Ormenisan <aaor@sics.se>
  */
-public class GVoDWS extends Service<Configuration> {
+public class SweepWS extends Service<Configuration> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(GVoDWS.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SweepWS.class);
 
-    private SettableFuture<GVoDSyncI> gvodSyncIFuture;
+    private SweepSyncI sweepSyncI;
 
-    public GVoDWS(SettableFuture<GVoDSyncI> gvodSyncIFuture) {
-        this.gvodSyncIFuture = gvodSyncIFuture;
+    public SweepWS(SweepSyncI sweepSyncI) {
+        this.sweepSyncI = sweepSyncI;
     }
 
     @Override
     public void initialize(Bootstrap<Configuration> bootstrap) {
-        bootstrap.addBundle(new AssetsBundle("/interface/", "/gvod/"));
+        bootstrap.addBundle(new AssetsBundle("/interface/", "/webapp/"));
     }
 
     @Override
     public void run(Configuration configuration, Environment environment) throws Exception {
-        GVoDSyncI gvodSyncI = null;
-        try {
-            LOG.info("waiting on creation of gvod synchronous interface");
-            gvodSyncI = gvodSyncIFuture.get();
-            LOG.info("gvod synchronous interface created");
-        } catch (InterruptedException ex) {
-            LOG.error("gvod synchronous interface was not instantiated - possible wrong creation order");
-            throw new RuntimeException(ex);
-        } catch (ExecutionException ex) {
-            LOG.error("gvod synchronous interface was not instantiated - possible wrong creation order");
-            throw new RuntimeException(ex);
-        }
-
-        environment.addProvider(new GVoDRESTMsgs.LibraryResource(gvodSyncI));
-        environment.addProvider(new GVoDRESTMsgs.FilesResource(gvodSyncI));
-        environment.addProvider(new GVoDRESTMsgs.PendingUploadResource(gvodSyncI));
-        environment.addProvider(new GVoDRESTMsgs.UploadResource(gvodSyncI));
-        environment.addProvider(new GVoDRESTMsgs.DownloadResource(gvodSyncI));
-        environment.addProvider(new GVoDRESTMsgs.RemoveResource(gvodSyncI));
-        environment.addProvider(new GVoDRESTMsgs.PlayVideoResource(gvodSyncI));
-        environment.addProvider(new GVoDRESTMsgs.StopVideoResource(gvodSyncI));
+        environment.addProvider(new SweepRESTMsgs.SearchIndexResource(sweepSyncI));
+        environment.addProvider(new SweepRESTMsgs.AddIndexResource(sweepSyncI));
 
         /*
          * To allow cross origin resource request from angular js client

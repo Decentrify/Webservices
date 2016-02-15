@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package se.kth.ws.gvod;
+package se.sics.ws.gvod;
 
 import com.google.common.primitives.Ints;
 import se.sics.gvod.manager.toolbox.GVoDSyncI;
@@ -35,8 +35,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import se.kth.ws.gvod.model.PlayResponseJSON;
-import se.kth.ws.gvod.model.VideoOpErrorJSON;
+import se.sics.ws.gvod.model.PlayResponseJSON;
+import se.sics.ws.gvod.model.VideoOpErrorJSON;
 import se.sics.gvod.common.util.VoDHeartbeatServiceEnum;
 import se.sics.gvod.manager.util.FileStatus;
 import se.sics.gvod.manager.toolbox.Result;

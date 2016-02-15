@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package se.kth.ws.dy;
+package se.sics.ws.dy;
 
 import com.google.common.util.concurrent.SettableFuture;
 import com.yammer.dropwizard.Service;
@@ -34,13 +34,13 @@ import java.util.concurrent.ExecutionException;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import se.kth.ws.util.TrayUI;
+import se.sics.ws.util.TrayUI;
 import se.sics.gvod.manager.toolbox.GVoDSyncI;
 
 import javax.swing.*;
-import se.kth.ws.gvod.GVoDRESTMsgs;
-import se.kth.ws.sweep.SweepRESTMsgs;
-import se.kth.ws.sweep.core.SweepSyncI;
+import se.sics.ws.gvod.GVoDRESTMsgs;
+import se.sics.ws.sweep.SweepRESTMsgs;
+import se.sics.ws.sweep.core.SweepSyncI;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>

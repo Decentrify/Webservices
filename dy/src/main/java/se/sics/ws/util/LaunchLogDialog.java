@@ -3,9 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package se.kth.ws.util;
+package se.sics.ws.util;
 
-import se.kth.ws.dy.DYWS;
+import se.sics.ws.dy.DYWS;
 
 import javax.swing.*;
 import javax.swing.text.BadLocationException;

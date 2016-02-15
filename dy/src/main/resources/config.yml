@@ -14,11 +14,10 @@ logging:
     # Sets the level for 'com.example.app' to DEBUG.
     "java.awt": WARN
     "Kompics": WARN
-    "se.sics.kompics.network.netty": WARN
-    "se.sics.ktoolbox.croupier": INFO
-    "se.sics.ktoolbox.gradient": INFO
-    "se.sics.ktoolbox.tgradient": INFO
-    "se.sics.ktoolbox.election": INFO
+    "se.sics.kompics": WARN
+    "se.sics.ktoolbox": WARN
+    "se.sics.gvod": INFO
+    "se.sics.
     
   console:
       enabled: true

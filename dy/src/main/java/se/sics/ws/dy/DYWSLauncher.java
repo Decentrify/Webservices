@@ -16,7 +16,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package se.kth.ws.dy;
+package se.sics.ws.dy;
 
 import com.google.common.util.concurrent.SettableFuture;
 import com.typesafe.config.Config;
@@ -24,13 +24,10 @@ import com.typesafe.config.ConfigException;
 import com.typesafe.config.ConfigFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import se.kth.ws.sweep.BootstrapNodes;
-import se.kth.ws.sweep.core.SweepSyncComponent;
-import se.kth.ws.sweep.core.SweepSyncI;
+import se.sics.ws.sweep.core.SweepSyncComponent;
+import se.sics.ws.sweep.core.SweepSyncI;
 import se.sics.caracaldb.MessageRegistrator;
 import se.sics.gvod.common.util.VoDHeartbeatServiceEnum;
-import se.sics.gvod.config.GradientConfiguration;
-import se.sics.gvod.config.SearchConfiguration;
 import se.sics.gvod.manager.toolbox.GVoDSyncI;
 import se.sics.gvod.network.GVoDSerializerSetup;
 import se.sics.gvod.system.HostManagerComp;
@@ -79,6 +76,8 @@ import se.sics.ktoolbox.util.network.nat.NatAwareAddressImpl;
 import se.sics.ktoolbox.util.setup.BasicSerializerSetup;
 import se.sics.ktoolbox.util.status.Status;
 import se.sics.ktoolbox.util.status.StatusPort;
+import se.sics.ms.gvod.config.GradientConfiguration;
+import se.sics.ms.gvod.config.SearchConfiguration;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>
