@@ -23,6 +23,29 @@
             <artifactId>gvod</artifactId>
             <version>${project.version}</version>
         </dependency>
+        
+        <dependency>
+            <groupId>se.sics.ktoolbox.overlaymngr</groupId>
+            <artifactId>core</artifactId>
+            <version>${ktoolbox.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>se.sics.ktoolbox.overlaymngr</groupId>
+            <artifactId>network</artifactId>
+            <version>${ktoolbox.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
     </dependencies>
     
     <build>
@@ -43,7 +66,7 @@
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>se.kth.ws.dy.DYWSLauncher</mainClass>
+                                    <mainClass>se.sics.ws.dy.DYWSLauncher</mainClass>
                                 </transformer>
                             </transformers>
                             <filters>
@@ -84,7 +107,7 @@
                             </platforms>
                             <programs>
                                 <program>
-                                    <mainClass>se.kth.ws.dy.DYWSLauncher</mainClass>
+                                    <mainClass>se.sics.ws.dy.DYWSLauncher</mainClass>
                                     <id>dy</id>
                                     <commandLineArguments>
                                         <commandLineArgument>-Djava.net.preferIPv4Stack=true</commandLineArgument>
@@ -113,7 +136,7 @@
                             <dontWrapJar>false</dontWrapJar>
                             <jar>target/${project.artifactId}-${project.version}-shaded.jar</jar>
                             <classPath>
-                                <mainClass>se.kth.ws.dy.DYWSLauncher</mainClass>
+                                <mainClass>se.sics.ws.dy.DYWSLauncher</mainClass>
                                 <preCp>lib\*.jar</preCp>
                             </classPath>
                             <icon>src/main/resources/icons/dy.ico</icon>

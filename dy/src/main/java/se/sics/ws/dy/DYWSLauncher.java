@@ -54,7 +54,10 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.nio.channels.Channels;
+import java.util.ArrayList;
 import java.util.EnumSet;
+import se.sics.gvod.core.aggregation.VodCoreAggregation;
 import se.sics.gvod.system.HostManagerKCWrapper;
 import se.sics.ktoolbox.cc.bootstrap.CCOperationPort;
 import se.sics.ktoolbox.cc.bootstrap.event.status.CCBootstrapDisconnected;
@@ -68,10 +71,14 @@ import se.sics.ktoolbox.election.ElectionSerializerSetup;
 import se.sics.ktoolbox.election.aggregation.ElectionAggregation;
 import se.sics.ktoolbox.gradient.GradientSerializerSetup;
 import se.sics.ktoolbox.gradient.aggregation.GradientAggregation;
+import se.sics.ktoolbox.overlaymngr.OMngrSerializerSetup;
+import se.sics.ktoolbox.overlaymngr.OverlayMngrComp;
+import se.sics.ktoolbox.overlaymngr.OverlayMngrComp.OverlayMngrInit;
 import se.sics.ktoolbox.util.aggregation.BasicAggregation;
 import se.sics.ktoolbox.util.config.impl.SystemKCWrapper;
 import se.sics.ktoolbox.util.network.KAddress;
 import se.sics.ktoolbox.util.network.basic.BasicAddress;
+import se.sics.ktoolbox.util.network.nat.NatAwareAddress;
 import se.sics.ktoolbox.util.network.nat.NatAwareAddressImpl;
 import se.sics.ktoolbox.util.setup.BasicSerializerSetup;
 import se.sics.ktoolbox.util.status.Status;
@@ -97,6 +104,7 @@ public class DYWSLauncher extends ComponentDefinition {
     private Component networkComp;
     private Component caracalClientComp;
     private Component heartbeatComp;
+    private Component overlayMngrComp;
     private Component sweepHostComp;
     private Component sweepSyncComp;
     private Component vodHostComp;
@@ -160,18 +168,20 @@ public class DYWSLauncher extends ComponentDefinition {
         currentId = BasicSerializerSetup.registerBasicSerializers(currentId);
         currentId = CroupierSerializerSetup.registerSerializers(currentId);
         currentId = GradientSerializerSetup.registerSerializers(currentId);
+        currentId = OMngrSerializerSetup.registerSerializers(currentId);
         currentId = ElectionSerializerSetup.registerSerializers(currentId);
         currentId = AggregatorSerializerSetup.registerSerializers(currentId);
         currentId = ChunkManagerSerializerSetup.registerSerializers(currentId);
         currentId = SweepSerializerSetup.registerSerializers(currentId);
         currentId = GVoDSerializerSetup.registerSerializers(currentId);
     }
-    
+
     private void registerPortTracking() {
         BasicAggregation.registerPorts();
         CroupierAggregation.registerPorts();
         GradientAggregation.registerPorts();
         ElectionAggregation.registerPorts();
+        VodCoreAggregation.registerPorts();
     }
 
     private void phase1() {
@@ -351,10 +361,24 @@ public class DYWSLauncher extends ComponentDefinition {
     };
 
     private void phase3() {
+        connectOverlayMngr();
+        trigger(Start.event, overlayMngrComp.control());
         connectSweep();
         connectSweepSync();
         connectVoDHost();
         startWebservice();
+    }
+    
+     private void connectOverlayMngr() {
+        overlayMngrComp = create(OverlayMngrComp.class, new OverlayMngrInit((NatAwareAddress)self, new ArrayList<NatAwareAddress>()));
+        Channel[] overlayMngrChannels = new Channel[4];
+        overlayMngrChannels[0] = connect(overlayMngrComp.getNegative(Timer.class), 
+                timerComp.getPositive(Timer.class), Channel.TWO_WAY);
+        overlayMngrChannels[1] = connect(overlayMngrComp.getNegative(Network.class), 
+                networkComp.getPositive(Network.class), Channel.TWO_WAY);
+        overlayMngrChannels[2] = connect(overlayMngrComp.getNegative(CCHeartbeatPort.class), 
+                heartbeatComp.getPositive(CCHeartbeatPort.class), Channel.TWO_WAY);
+//        connect(overlayMngrComp.getPositive(OverlayMngrPort.class), omngrPort.getPair(), Channel.TWO_WAY);
     }
 
     private void connectVoDHost() {

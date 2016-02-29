@@ -15,9 +15,14 @@ logging:
     "java.awt": WARN
     "Kompics": WARN
     "se.sics.kompics": WARN
+    "se.sics.kompics.network": WARN
+    
     "se.sics.ktoolbox": WARN
+    "se.sics.ktoolbox.croupier": WARN
+     
     "se.sics.gvod": INFO
-    "se.sics.
+    "se.sics.ms": WARN
+    "se.sics.ws": WARN
     
   console:
       enabled: true
