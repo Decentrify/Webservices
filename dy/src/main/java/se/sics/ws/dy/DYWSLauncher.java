@@ -46,15 +46,10 @@ import se.sics.ktoolbox.ipsolver.IpSolverPort;
 import se.sics.ktoolbox.ipsolver.msg.GetIp;
 import se.sics.ms.net.SweepSerializerSetup;
 import se.sics.ms.ports.UiPort;
-import se.sics.ms.search.SearchPeer;
-import se.sics.ms.search.SearchPeerInit;
-import se.sics.ms.util.HeartbeatServiceEnum;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.nio.channels.Channels;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import se.sics.gvod.core.aggregation.VodCoreAggregation;
@@ -66,7 +61,6 @@ import se.sics.ktoolbox.cc.heartbeat.event.status.CCHeartbeatReady;
 import se.sics.ktoolbox.chunkmanager.ChunkManagerSerializerSetup;
 import se.sics.ktoolbox.croupier.CroupierSerializerSetup;
 import se.sics.ktoolbox.croupier.aggregation.CroupierAggregation;
-import se.sics.ktoolbox.election.ElectionConfig;
 import se.sics.ktoolbox.election.ElectionSerializerSetup;
 import se.sics.ktoolbox.election.aggregation.ElectionAggregation;
 import se.sics.ktoolbox.gradient.GradientSerializerSetup;
@@ -85,6 +79,7 @@ import se.sics.ktoolbox.util.status.Status;
 import se.sics.ktoolbox.util.status.StatusPort;
 import se.sics.ms.gvod.config.GradientConfiguration;
 import se.sics.ms.gvod.config.SearchConfiguration;
+import se.sics.ms.search.SearchPeerComp;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>
@@ -368,15 +363,15 @@ public class DYWSLauncher extends ComponentDefinition {
         connectVoDHost();
         startWebservice();
     }
-    
-     private void connectOverlayMngr() {
-        overlayMngrComp = create(OverlayMngrComp.class, new OverlayMngrInit((NatAwareAddress)self, new ArrayList<NatAwareAddress>()));
+
+    private void connectOverlayMngr() {
+        overlayMngrComp = create(OverlayMngrComp.class, new OverlayMngrInit((NatAwareAddress) self, new ArrayList<NatAwareAddress>()));
         Channel[] overlayMngrChannels = new Channel[4];
-        overlayMngrChannels[0] = connect(overlayMngrComp.getNegative(Timer.class), 
+        overlayMngrChannels[0] = connect(overlayMngrComp.getNegative(Timer.class),
                 timerComp.getPositive(Timer.class), Channel.TWO_WAY);
-        overlayMngrChannels[1] = connect(overlayMngrComp.getNegative(Network.class), 
+        overlayMngrChannels[1] = connect(overlayMngrComp.getNegative(Network.class),
                 networkComp.getPositive(Network.class), Channel.TWO_WAY);
-        overlayMngrChannels[2] = connect(overlayMngrComp.getNegative(CCHeartbeatPort.class), 
+        overlayMngrChannels[2] = connect(overlayMngrComp.getNegative(CCHeartbeatPort.class),
                 heartbeatComp.getPositive(CCHeartbeatPort.class), Channel.TWO_WAY);
 //        connect(overlayMngrComp.getPositive(OverlayMngrPort.class), omngrPort.getPair(), Channel.TWO_WAY);
     }
@@ -392,13 +387,19 @@ public class DYWSLauncher extends ComponentDefinition {
     }
 
     private void connectSweep() {
-        ElectionConfig electionConfig = new ElectionConfig(ConfigFactory.load());
+        //TODO ALex fill in the rest
+        SearchPeerComp.ExtPort extPort = new SearchPeerComp.ExtPort(
+                timerComp.getPositive(Timer.class),
+                networkComp.getPositive(Network.class),
+                null,
+                null,
+                null,
+                null,
+                null);
 
-        sweepHostComp = create(SearchPeer.class, new SearchPeerInit(self, SearchConfiguration.build(),
-                electionConfig, GradientConfiguration.build()));
-        connect(sweepHostComp.getNegative(Timer.class), timerComp.getPositive(Timer.class), Channel.TWO_WAY);
-        connect(sweepHostComp.getNegative(Network.class), networkComp.getPositive(Network.class), Channel.TWO_WAY);
-        connect(sweepHostComp.getNegative(CCHeartbeatPort.class), heartbeatComp.getPositive(CCHeartbeatPort.class), Channel.TWO_WAY);
+        sweepHostComp = create(SearchPeerComp.class, new SearchPeerComp.Init(self, extPort,
+                GradientConfiguration.build(), SearchConfiguration.build()));
+        //TODO Alex connect ui and omngr
         trigger(Start.event, sweepHostComp.control());
     }
 
@@ -427,7 +428,7 @@ public class DYWSLauncher extends ComponentDefinition {
     }
 
     public static void main(String[] args) throws IOException {
-        HeartbeatServiceEnum.CROUPIER.setServiceId((byte) 1);
+//        HeartbeatServiceEnum.CROUPIER.setServiceId((byte) 1);
         VoDHeartbeatServiceEnum.CROUPIER.setServiceId((byte) 2);
         GetIp.NetworkInterfacesMask setIpType = GetIp.NetworkInterfacesMask.PUBLIC;
         if (args.length == 1 && args[0].equals("-tenDot")) {
