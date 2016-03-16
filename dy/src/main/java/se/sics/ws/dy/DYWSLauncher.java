@@ -95,13 +95,6 @@ import se.sics.ms.search.SearchPeerComp;
 public class DYWSLauncher extends ComponentDefinition {
 
     private Logger LOG = LoggerFactory.getLogger(DYWSLauncher.class);
-    private static GetIp.NetworkInterfacesMask ipType;
-
-    public static void setIpType(GetIp.NetworkInterfacesMask setIpType) {
-        ipType = setIpType;
-    }
-    private static final int BIND_RETRY = 3;
-
     //******************************CONNECTIONS*********************************
     //DO NOT CONNECT TO
     //internal
@@ -131,15 +124,13 @@ public class DYWSLauncher extends ComponentDefinition {
 
     public DYWSLauncher() {
         LOG.info("initiating...");
-        if (ipType == null) {
-            LOG.error("launcher logic error - ipType not set");
-            System.exit(1);
-        }
         gvodSyncIFuture = SettableFuture.create();
         registerSerializers();
         registerPortTracking();
 
         systemConfig = new SystemKCWrapper(config());
+
+        phase1();
 
         subscribe(handleStart, control);
         subscribe(handleAddressUpdate, addressUpdatePort);
@@ -149,8 +140,6 @@ public class DYWSLauncher extends ComponentDefinition {
         @Override
         public void handle(Start event) {
             LOG.info("starting: solvingIp");
-
-            phase1();
         }
     };
 
@@ -209,7 +198,6 @@ public class DYWSLauncher extends ComponentDefinition {
 
                 trigger(Start.event, caracalClientComp.control());
                 trigger(Start.event, heartbeatComp.control());
-                trigger(Start.event, caracalClientComp.control());
             }
         }
     };
@@ -218,6 +206,7 @@ public class DYWSLauncher extends ComponentDefinition {
         caracalClientComp = create(CCBootstrapComp.class, new CCBootstrapComp.CCBootstrapInit(selfAdr));
         connect(caracalClientComp.getNegative(Timer.class), timerComp.getPositive(Timer.class), Channel.TWO_WAY);
         connect(caracalClientComp.getNegative(Network.class), netMngrComp.getPositive(Network.class), Channel.TWO_WAY);
+        connect(caracalClientComp.getPositive(StatusPort.class), otherStatusPort.getPair(), Channel.TWO_WAY);
     }
 
     private void connectHeartbeat() {
@@ -225,7 +214,7 @@ public class DYWSLauncher extends ComponentDefinition {
         connect(heartbeatComp.getNegative(Timer.class), timerComp.getPositive(Timer.class), Channel.TWO_WAY);
         connect(heartbeatComp.getNegative(CCOperationPort.class), caracalClientComp.getPositive(CCOperationPort.class), Channel.TWO_WAY);
         connect(heartbeatComp.getNegative(StatusPort.class), caracalClientComp.getPositive(StatusPort.class), Channel.TWO_WAY);
-        trigger(Start.event, heartbeatComp.control());
+        connect(heartbeatComp.getPositive(StatusPort.class), otherStatusPort.getPair(), Channel.TWO_WAY);
     }
 
     ClassMatchedHandler handleCaracalReady
@@ -269,7 +258,9 @@ public class DYWSLauncher extends ComponentDefinition {
         @Override
         public void handle(Status.Internal<CCHeartbeatReady> e) {
             LOG.info("starting: system");
-            phase3();
+            if (overlayMngrComp == null) {
+                phase3();
+            }
         }
     };
 
@@ -279,7 +270,7 @@ public class DYWSLauncher extends ComponentDefinition {
         connectSweepSync();
         connectVoDHost();
         startWebservice();
-        
+
         trigger(Start.event, overlayMngrComp.control());
         trigger(Start.event, vodHostComp.control());
         trigger(Start.event, sweepHostComp.control());
@@ -295,19 +286,19 @@ public class DYWSLauncher extends ComponentDefinition {
 
     private void connectVoDHost() {
         HostManagerComp.ExtPort vodHostExtPorts = new HostManagerComp.ExtPort(timerComp.getPositive(Timer.class),
-                netMngrComp.getPositive(Network.class), netMngrComp.getPositive(AddressUpdatePort.class), 
-                caracalClientComp.getPositive(CCOperationPort.class), 
+                netMngrComp.getPositive(Network.class), netMngrComp.getPositive(AddressUpdatePort.class),
+                caracalClientComp.getPositive(CCOperationPort.class),
                 overlayMngrComp.getPositive(OverlayMngrPort.class), overlayMngrComp.getPositive(CroupierPort.class),
                 overlayMngrComp.getNegative(OverlayViewUpdatePort.class));
-        vodHostComp = create(HostManagerComp.class, new HostManagerComp.HostManagerInit(vodHostExtPorts, 
+        vodHostComp = create(HostManagerComp.class, new HostManagerComp.HostManagerInit(vodHostExtPorts,
                 new HostManagerKCWrapper(config(), selfAdr), gvodSyncIFuture, vodSchemaId));
-        
+
     }
 
     private void connectSweep() {
         SearchPeerComp.ExtPort extPort = new SearchPeerComp.ExtPort(timerComp.getPositive(Timer.class),
-                netMngrComp.getPositive(Network.class), netMngrComp.getPositive(AddressUpdatePort.class), 
-                overlayMngrComp.getPositive(CroupierPort.class), overlayMngrComp.getPositive(GradientPort.class), 
+                netMngrComp.getPositive(Network.class), netMngrComp.getPositive(AddressUpdatePort.class),
+                overlayMngrComp.getPositive(CroupierPort.class), overlayMngrComp.getPositive(GradientPort.class),
                 overlayMngrComp.getNegative(OverlayViewUpdatePort.class));
         sweepHostComp = create(SearchPeerComp.class, new SearchPeerComp.Init(selfAdr, extPort,
                 GradientConfiguration.build(), SearchConfiguration.build()));
@@ -317,7 +308,7 @@ public class DYWSLauncher extends ComponentDefinition {
         sweepSyncComp = create(SweepSyncComponent.class, Init.NONE);
         sweepSyncI = (SweepSyncI) sweepSyncComp.getComponent();
         connect(sweepSyncComp.getNegative(UiPort.class), sweepHostComp.getPositive(UiPort.class), Channel.TWO_WAY);
-        
+
     }
 
     private void startWebservice() {
@@ -338,14 +329,6 @@ public class DYWSLauncher extends ComponentDefinition {
     }
 
     public static void main(String[] args) throws IOException {
-//        HeartbeatServiceEnum.CROUPIER.setServiceId((byte) 1);
-        VoDHeartbeatServiceEnum.CROUPIER.setServiceId((byte) 2);
-        GetIp.NetworkInterfacesMask setIpType = GetIp.NetworkInterfacesMask.PUBLIC;
-        if (args.length == 1 && args[0].equals("-tenDot")) {
-            setIpType = GetIp.NetworkInterfacesMask.TEN_DOT_PRIVATE;
-        }
-        DYWSLauncher.setIpType(setIpType);
-
         if (Kompics.isOn()) {
             Kompics.shutdown();
         }
