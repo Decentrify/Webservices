@@ -27,31 +27,22 @@ import org.slf4j.LoggerFactory;
 import se.sics.ws.sweep.core.SweepSyncComponent;
 import se.sics.ws.sweep.core.SweepSyncI;
 import se.sics.caracaldb.MessageRegistrator;
-import se.sics.gvod.common.util.VoDHeartbeatServiceEnum;
 import se.sics.gvod.manager.toolbox.GVoDSyncI;
 import se.sics.gvod.network.GVoDSerializerSetup;
 import se.sics.gvod.system.HostManagerComp;
 import se.sics.kompics.*;
 import se.sics.kompics.network.Network;
-import se.sics.kompics.network.netty.NettyInit;
-import se.sics.kompics.network.netty.NettyNetwork;
 import se.sics.kompics.timer.Timer;
 import se.sics.kompics.timer.java.JavaTimer;
 import se.sics.ktoolbox.aggregator.AggregatorSerializerSetup;
 import se.sics.ktoolbox.cc.bootstrap.CCBootstrapComp;
 import se.sics.ktoolbox.cc.heartbeat.CCHeartbeatComp;
 import se.sics.ktoolbox.cc.heartbeat.CCHeartbeatPort;
-import se.sics.ktoolbox.ipsolver.IpSolverComp;
-import se.sics.ktoolbox.ipsolver.IpSolverPort;
-import se.sics.ktoolbox.ipsolver.msg.GetIp;
 import se.sics.ms.net.SweepSerializerSetup;
 import se.sics.ms.ports.UiPort;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.EnumSet;
 import se.sics.gvod.core.aggregation.VodCoreAggregation;
 import se.sics.gvod.system.HostManagerKCWrapper;
 import se.sics.ktoolbox.cc.bootstrap.CCOperationPort;
@@ -78,9 +69,7 @@ import se.sics.ktoolbox.util.address.AddressUpdatePort;
 import se.sics.ktoolbox.util.aggregation.BasicAggregation;
 import se.sics.ktoolbox.util.config.impl.SystemKCWrapper;
 import se.sics.ktoolbox.util.network.KAddress;
-import se.sics.ktoolbox.util.network.basic.BasicAddress;
-import se.sics.ktoolbox.util.network.nat.NatAwareAddress;
-import se.sics.ktoolbox.util.network.nat.NatAwareAddressImpl;
+import se.sics.ktoolbox.util.overlays.id.OverlayIdRegistry;
 import se.sics.ktoolbox.util.overlays.view.OverlayViewUpdatePort;
 import se.sics.ktoolbox.util.setup.BasicSerializerSetup;
 import se.sics.ktoolbox.util.status.Status;
@@ -160,7 +149,6 @@ public class DYWSLauncher extends ComponentDefinition {
         currentId = NetworkMngrSerializerSetup.registerSerializers(currentId);
         currentId = ElectionSerializerSetup.registerSerializers(currentId);
         currentId = AggregatorSerializerSetup.registerSerializers(currentId);
-        currentId = ChunkManagerSerializerSetup.registerSerializers(currentId);
         currentId = SweepSerializerSetup.registerSerializers(currentId);
         currentId = GVoDSerializerSetup.registerSerializers(currentId);
     }
@@ -270,6 +258,7 @@ public class DYWSLauncher extends ComponentDefinition {
         connectSweepSync();
         connectVoDHost();
         startWebservice();
+        LOG.info("overlay owners:\n{}", OverlayIdRegistry.print());
 
         trigger(Start.event, overlayMngrComp.control());
         trigger(Start.event, vodHostComp.control());
@@ -291,7 +280,7 @@ public class DYWSLauncher extends ComponentDefinition {
                 overlayMngrComp.getPositive(OverlayMngrPort.class), overlayMngrComp.getPositive(CroupierPort.class),
                 overlayMngrComp.getNegative(OverlayViewUpdatePort.class));
         vodHostComp = create(HostManagerComp.class, new HostManagerComp.HostManagerInit(vodHostExtPorts,
-                new HostManagerKCWrapper(config(), selfAdr), gvodSyncIFuture, vodSchemaId));
+                new HostManagerKCWrapper(config()), gvodSyncIFuture, vodSchemaId));
 
     }
 
@@ -302,6 +291,7 @@ public class DYWSLauncher extends ComponentDefinition {
                 overlayMngrComp.getNegative(OverlayViewUpdatePort.class));
         sweepHostComp = create(SearchPeerComp.class, new SearchPeerComp.Init(selfAdr, extPort,
                 GradientConfiguration.build(), SearchConfiguration.build()));
+        connect(sweepHostComp.getNegative(OverlayMngrPort.class), overlayMngrComp.getPositive(OverlayMngrPort.class), Channel.TWO_WAY);
     }
 
     private void connectSweepSync() {

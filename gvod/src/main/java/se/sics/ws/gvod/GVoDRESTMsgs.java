@@ -18,12 +18,9 @@
  */
 package se.sics.ws.gvod;
 
-import com.google.common.primitives.Ints;
 import se.sics.gvod.manager.toolbox.GVoDSyncI;
 import com.google.common.util.concurrent.SettableFuture;
-import java.security.SecureRandom;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.ws.rs.Consumes;
@@ -37,7 +34,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import se.sics.ws.gvod.model.PlayResponseJSON;
 import se.sics.ws.gvod.model.VideoOpErrorJSON;
-import se.sics.gvod.common.util.VoDHeartbeatServiceEnum;
 import se.sics.gvod.manager.util.FileStatus;
 import se.sics.gvod.manager.toolbox.Result;
 import se.sics.gvod.manager.toolbox.VideoInfo;
@@ -149,17 +145,17 @@ public class GVoDRESTMsgs {
                 return Response.status(Response.Status.SERVICE_UNAVAILABLE).entity(errorDesc).build();
             }
 
-            SettableFuture<Result<Boolean>> myFuture = SettableFuture.create();
+            SettableFuture<Result<Identifier>> myFuture = SettableFuture.create();
             gvod.pendingUpload(videoInfo, myFuture);
 
             VideoInfo ret = new VideoInfo();
             ret.setName(videoInfo.getName());
-            ret.setOverlayId(getRandomOverlayId());
 
             try {
-                Result<Boolean> result = myFuture.get();
+                Result<Identifier> result = myFuture.get();
                 LOG.info("sending pending upload response:{}", result.status.toString());
                 if (result.ok()) {
+                    ret.setOverlayId(((IntIdentifier)result.value.get()).id);
                     return Response.status(Response.Status.OK).entity(ret).build();
                 } else {
                     VideoOpErrorJSON errorDesc = new VideoOpErrorJSON(videoInfo, result.getDetails());
@@ -174,14 +170,6 @@ public class GVoDRESTMsgs {
                 VideoOpErrorJSON errorDesc = new VideoOpErrorJSON(videoInfo, "ws internal error");
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(errorDesc).build();
             }
-        }
-        
-        private int getRandomOverlayId() {
-            Random rand = new SecureRandom();
-            byte[] randBytes = new byte[3];
-            rand.nextBytes(randBytes);
-            int overlayId = Ints.fromBytes(VoDHeartbeatServiceEnum.CROUPIER.getServiceId(), randBytes[0], randBytes[1], randBytes[2]);
-            return overlayId;
         }
     }
 
