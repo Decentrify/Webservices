@@ -20,10 +20,10 @@ logging:
     
     "Kompics": WARN
     "se.sics.kompics": WARN
-    
-    "se.sics.kompics.network": WARN
+
     "NettyNetwork@30000": WARN
-    "se.sics.ktoolbox.util.network": WARN
+    "se.sics.kompics.network": WARN
+    "se.sics.ktoolbox.util.network": INFO
     
     "se.sics.ktoolbox": WARN
      
