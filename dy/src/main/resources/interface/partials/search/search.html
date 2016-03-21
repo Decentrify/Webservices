@@ -1,0 +1,39 @@
+<div class="container">
+
+    <div class="medium-top-margin-buffer">
+
+        <div class="row" ng-show="searchController.search.result !== null && searchController.search.result.length > 0">
+            <div class="video-wrapper">
+                <video id="main_player" class="video-js vjs-default-skin"></video>
+            </div>
+        </div>
+
+        <div class="row" ng-show="searchController.search.result.length == 0">
+            <h1 style="color: lightgray;">Sorry, No Results Found ... </h1>
+        </div>
+
+
+        <!-- Div which needs to be blocked. -->
+
+        <div block-ui="searchBlock" style="min-height: 150px">
+
+            <div class="top-buffer">
+
+                <div ng-repeat="obj in searchController.search.result">
+                    <div class="row">
+                        <div class="col-sm-6" search-result></div>
+                    </div>
+                    <hr>
+                </div>
+
+            </div>
+
+            <div class="top-buffer" ng-show="searchController.search.result !== null && searchController.search.result.length > 0">
+                <pagination ng-change="searchController.pageChange()" ng-model="searchController.paginate.currentPage" max-size="searchController.paginate.entriesPerPage" total-items="searchController.paginate.hits"> </pagination>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

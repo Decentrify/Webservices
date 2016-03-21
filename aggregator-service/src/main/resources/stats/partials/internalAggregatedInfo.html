@@ -1,0 +1,29 @@
+<div class="row">
+
+    <div>
+        <table class="table">
+            <thead>
+            <tr>
+                <!--<th class="base-font">NodeId</th>-->
+                <th class="base-font">Partition Id</th>
+                <th class="base-font">Partition Depth</th>
+                <th class="base-font">Entries</th>
+                <th class="base-font">Leader</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr ng-repeat="state in aggregatedStateController.states">
+                <!--<td>{{state.nodeId}}</td>-->
+                <td class="base-font">{{state.partitionId}}</td>
+                <td class="base-font">{{state.partitionDepth}}</td>
+                <td class="base-font">{{state.numEntries}}</td>
+                <td class="base-font">{{state.leaderId == null ? "None" : state.leaderId}}</td>
+            </tr>
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>

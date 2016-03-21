@@ -1,0 +1,20 @@
+.link {
+    font-family: 'Ubuntu Condensed', sans-serif;
+    font-size: 1.5em;
+}
+
+.base-font{
+    font-family: 'Ubuntu Condensed', sans-serif;
+}
+
+.heading-font{
+    font-family: 'Lobster Two', cursive;
+}
+
+.mtm{
+    margin-top: 50px;
+}
+
+.htm{
+    margin-top: 100px;
+}
