@@ -23,9 +23,11 @@ logging:
 
     "NettyNetwork@30000": WARN
     "se.sics.kompics.network": WARN
-    "se.sics.ktoolbox.util.network": INFO
+    "se.sics.ktoolbox.util.network": WARN
     
     "se.sics.ktoolbox": WARN
+    "se.sics.ktoolbox.overlaymngr.bootstrap": INFO
+    "se.sics.ktoolbox.croupier": WARN
      
     "se.sics.gvod": INFO
     "se.sics.ms": INFO

@@ -38,7 +38,7 @@ import se.sics.gvod.manager.util.FileStatus;
 import se.sics.gvod.manager.toolbox.Result;
 import se.sics.gvod.manager.toolbox.VideoInfo;
 import se.sics.ktoolbox.util.identifiable.Identifier;
-import se.sics.ktoolbox.util.identifiable.basic.IntIdentifier;
+import se.sics.ktoolbox.util.identifiable.basic.OverlayIdentifier;
 import se.sics.ws.gvod.util.ResponseStatusWSMapper;
 
 /**
@@ -155,7 +155,7 @@ public class GVoDRESTMsgs {
                 Result<Identifier> result = myFuture.get();
                 LOG.info("sending pending upload response:{}", result.status.toString());
                 if (result.ok()) {
-                    ret.setOverlayId(((IntIdentifier)result.value.get()).id);
+                    ret.setOverlayId(((OverlayIdentifier)result.value.get()).getInt());
                     return Response.status(Response.Status.OK).entity(ret).build();
                 } else {
                     VideoOpErrorJSON errorDesc = new VideoOpErrorJSON(videoInfo, result.getDetails());

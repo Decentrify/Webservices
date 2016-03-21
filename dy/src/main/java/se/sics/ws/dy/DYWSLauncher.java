@@ -49,7 +49,6 @@ import se.sics.ktoolbox.cc.bootstrap.CCOperationPort;
 import se.sics.ktoolbox.cc.bootstrap.event.status.CCBootstrapDisconnected;
 import se.sics.ktoolbox.cc.bootstrap.event.status.CCBootstrapReady;
 import se.sics.ktoolbox.cc.heartbeat.event.status.CCHeartbeatReady;
-import se.sics.ktoolbox.chunkmngr.ChunkManagerSerializerSetup;
 import se.sics.ktoolbox.croupier.CroupierPort;
 import se.sics.ktoolbox.croupier.CroupierSerializerSetup;
 import se.sics.ktoolbox.croupier.aggregation.CroupierAggregation;
@@ -108,7 +107,8 @@ public class DYWSLauncher extends ComponentDefinition {
     private SettableFuture<GVoDSyncI> gvodSyncIFuture;
     private SweepSyncI sweepSyncI;
 
-    byte[] vodSchemaId = null;
+    private byte[] vodSchemaId = null;
+    private boolean ccReady = false;
     //**************************************************************************
 
     public DYWSLauncher() {
@@ -221,6 +221,14 @@ public class DYWSLauncher extends ComponentDefinition {
                     if (dyWS != null) {
                         dyWS.setIsServerDown(false);
                     }
+
+                    if (!ccReady) {
+                        ccReady = true;
+                    } else {
+                        if (overlayMngrComp == null) {
+                            phase3();
+                        }
+                    }
                 }
             };
 
@@ -246,8 +254,12 @@ public class DYWSLauncher extends ComponentDefinition {
         @Override
         public void handle(Status.Internal<CCHeartbeatReady> e) {
             LOG.info("starting: system");
-            if (overlayMngrComp == null) {
-                phase3();
+            if (!ccReady) {
+                ccReady = true;
+            } else {
+                if (overlayMngrComp == null) {
+                    phase3();
+                }
             }
         }
     };
