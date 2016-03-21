@@ -6,9 +6,9 @@ import org.slf4j.LoggerFactory;
 import se.kth.ws.aggregator.util.DesignerEnum;
 import se.kth.ws.sweep.core.util.Result;
 import se.sics.kompics.*;
-import se.sics.ktoolbox.aggregator.global.api.event.WindowProcessing;
-import se.sics.ktoolbox.aggregator.global.api.ports.VisualizerPort;
-import se.sics.ms.data.aggregator.design.AggregatedInternalStateContainer;
+import se.sics.ktoolbox.aggregator.server.VisualizerPort;
+import se.sics.ktoolbox.aggregator.server.event.WindowProcessing;
+import se.sics.ms.aggregator.design.AggregatedInternalStateContainer;
 
 import java.util.UUID;
 
@@ -40,12 +40,10 @@ public class VisualizerSyncComponent extends ComponentDefinition implements Visu
         }
     };
 
-    @Override
     public boolean isReady() {
         return this.getComponentCore().state().equals(Component.State.ACTIVE);
     }
 
-    @Override
     public void getAggregatedInternalState(SettableFuture<Result<AggregatedInternalStateContainer>> settableFuture) {
 
         if(pendingJob != null){

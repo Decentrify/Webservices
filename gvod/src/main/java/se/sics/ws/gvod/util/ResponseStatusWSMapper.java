@@ -20,7 +20,6 @@
 package se.sics.ws.gvod.util;
 
 import javax.ws.rs.core.Response;
-import sun.security.x509.OCSPNoCheckExtension;
 
 /**
  * @author Alex Ormenisan <aaor@sics.se>

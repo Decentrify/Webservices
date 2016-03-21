@@ -25,7 +25,7 @@ import javax.ws.rs.core.Response;
  * @author Alex Ormenisan <aaor@sics.se>
  */
 public class ResponseStatusWSMapper {
-    public static Response.Status map(se.kth.ws.sweep.core.util.Result.Status from) {
+    public static Response.Status map(se.sics.ws.sweep.core.util.Result.Status from) {
         switch(from) {
             case OK : return Response.Status.OK;
             case BAD_REQUEST : return Response.Status.BAD_REQUEST;

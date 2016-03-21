@@ -5,29 +5,70 @@
     <parent>
         <groupId>se.kth.ws</groupId>
         <artifactId>Webservices</artifactId>
-        <version>2.0-SNAPSHOT</version>
+        <version>2.3-SNAPSHOT</version>
     </parent>
     <groupId>se.kth.ws</groupId>
     <artifactId>dy</artifactId>
-    <version>2.2.1-SNAPSHOT</version>
     <name>DY WS</name>
     <url>http://maven.apache.org</url>
-  
-    <properties>
-        <sweepws-version>2.2.1-SNAPSHOT</sweepws-version>
-        <gvodws-version>2.2.1-SNAPSHOT</gvodws-version>
-    </properties>
   
     <dependencies>
         <dependency>
             <groupId>se.kth.ws</groupId>
             <artifactId>sweep</artifactId>
-            <version>${sweepws-version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>se.kth.ws</groupId>
             <artifactId>gvod</artifactId>
-            <version>${gvodws-version}</version>
+            <version>${project.version}</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>se.sics.ktoolbox.overlaymngr</groupId>
+            <artifactId>core</artifactId>
+            <version>${ktoolbox.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>se.sics.ktoolbox.netmngr</groupId>
+            <artifactId>core</artifactId>
+            <version>${ktoolbox.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        
+        <!-- network -->
+        <dependency>
+            <groupId>se.sics.ktoolbox.overlaymngr</groupId>
+            <artifactId>network</artifactId>
+            <version>${ktoolbox.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>se.sics.ktoolbox.netmngr</groupId>
+            <artifactId>network</artifactId>
+            <version>${ktoolbox.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
     
@@ -49,7 +90,7 @@
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>se.kth.ws.dy.DYWSLauncher</mainClass>
+                                    <mainClass>se.sics.ws.dy.DYWSLauncher</mainClass>
                                 </transformer>
                             </transformers>
                             <filters>
@@ -59,6 +100,9 @@
                                         <exclude>META-INF/*.SF</exclude>
                                         <exclude>META-INF/*.DSA</exclude>
                                         <exclude>META-INF/*.RSA</exclude>
+                                        <exclude>application.conf</exclude>
+                                        <exclude>config.yml</exclude>
+                                        <exclude>log4j.properties</exclude>
                                     </excludes>
                                 </filter>
                             </filters>                        
@@ -87,7 +131,7 @@
                             </platforms>
                             <programs>
                                 <program>
-                                    <mainClass>se.kth.ws.dy.DYWSLauncher</mainClass>
+                                    <mainClass>se.sics.ws.dy.DYWSLauncher</mainClass>
                                     <id>dy</id>
                                     <commandLineArguments>
                                         <commandLineArgument>-Djava.net.preferIPv4Stack=true</commandLineArgument>
@@ -116,7 +160,7 @@
                             <dontWrapJar>false</dontWrapJar>
                             <jar>target/${project.artifactId}-${project.version}-shaded.jar</jar>
                             <classPath>
-                                <mainClass>se.kth.ws.dy.DYWSLauncher</mainClass>
+                                <mainClass>se.sics.ws.dy.DYWSLauncher</mainClass>
                                 <preCp>lib\*.jar</preCp>
                             </classPath>
                             <icon>src/main/resources/icons/dy.ico</icon>
@@ -162,6 +206,29 @@
                 </executions>
             </plugin>
 
+<!--            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.3</version>
+                <configuration>
+                    <excludes>
+                        <exclude>../application.conf</exclude>
+                        <exclude>../reference.conf</exclude>
+                        <exclude>../config.yml</exclude>
+                        <exclude>../log4j.properties</exclude>
+                    </excludes>                    
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <classpathPrefix>lib/</classpathPrefix>
+                            <mainClass>se.kth.ws.dy.DYWSLauncher</mainClass>
+                        </manifest>
+                        <manifestEntries>
+                            <Class-Path>conf/</Class-Path>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
                 <version>2.7</version>
@@ -200,7 +267,7 @@
                     </execution>
                 </executions>
             </plugin>
-
+            
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
@@ -213,8 +280,15 @@
                             <mainClass>se.kth.ws.dy.DYWSLauncher</mainClass>
                         </manifest>
                     </archive>
+                    
+                    <excludes>
+                        <exclude>src/main/resources/application.conf</exclude>
+                        <exclude>src/main/resources/reference.conf</exclude>
+                        <exclude>src/main/resources/config.yml</exclude>
+                        <exclude>src/main/resources/log4j.properties</exclude>
+                    </excludes>
                 </configuration>
-            </plugin>
+            </plugin>-->
         </plugins>
     </build>
 </project>

@@ -1,4 +1,4 @@
-package se.kth.ws.util;
+package se.sics.ws.util;
 
 import javax.swing.*;
 import java.util.Arrays;
