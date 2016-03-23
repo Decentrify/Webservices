@@ -35,8 +35,6 @@ import se.sics.kompics.network.Network;
 import se.sics.kompics.timer.Timer;
 import se.sics.kompics.timer.java.JavaTimer;
 import se.sics.ktoolbox.aggregator.AggregatorSerializerSetup;
-import se.sics.ktoolbox.cc.bootstrap.CCBootstrapComp;
-import se.sics.ktoolbox.cc.heartbeat.CCHeartbeatComp;
 import se.sics.ktoolbox.cc.heartbeat.CCHeartbeatPort;
 import se.sics.ms.net.SweepSerializerSetup;
 import se.sics.ms.ports.UiPort;
@@ -49,6 +47,8 @@ import se.sics.ktoolbox.cc.bootstrap.CCOperationPort;
 import se.sics.ktoolbox.cc.bootstrap.event.status.CCBootstrapDisconnected;
 import se.sics.ktoolbox.cc.bootstrap.event.status.CCBootstrapReady;
 import se.sics.ktoolbox.cc.heartbeat.event.status.CCHeartbeatReady;
+import se.sics.ktoolbox.cc.mngr.CCMngrComp;
+import se.sics.ktoolbox.cc.mngr.event.CCMngrStatus;
 import se.sics.ktoolbox.croupier.CroupierPort;
 import se.sics.ktoolbox.croupier.CroupierSerializerSetup;
 import se.sics.ktoolbox.croupier.aggregation.CroupierAggregation;
@@ -57,17 +57,16 @@ import se.sics.ktoolbox.election.aggregation.ElectionAggregation;
 import se.sics.ktoolbox.gradient.GradientPort;
 import se.sics.ktoolbox.gradient.GradientSerializerSetup;
 import se.sics.ktoolbox.gradient.aggregation.GradientAggregation;
+import se.sics.ktoolbox.netmngr.NetMngrReady;
 import se.sics.ktoolbox.netmngr.NetworkMngrComp;
 import se.sics.ktoolbox.netmngr.NetworkMngrSerializerSetup;
 import se.sics.ktoolbox.overlaymngr.OMngrSerializerSetup;
 import se.sics.ktoolbox.overlaymngr.OverlayMngrComp;
 import se.sics.ktoolbox.overlaymngr.OverlayMngrComp.Init;
 import se.sics.ktoolbox.overlaymngr.OverlayMngrPort;
-import se.sics.ktoolbox.util.address.AddressUpdate;
-import se.sics.ktoolbox.util.address.AddressUpdatePort;
 import se.sics.ktoolbox.util.aggregation.BasicAggregation;
 import se.sics.ktoolbox.util.config.impl.SystemKCWrapper;
-import se.sics.ktoolbox.util.network.KAddress;
+import se.sics.ktoolbox.util.network.nat.NatAwareAddress;
 import se.sics.ktoolbox.util.overlays.id.OverlayIdRegistry;
 import se.sics.ktoolbox.util.overlays.view.OverlayViewUpdatePort;
 import se.sics.ktoolbox.util.setup.BasicSerializerSetup;
@@ -83,21 +82,21 @@ import se.sics.ms.search.SearchPeerComp;
 public class DYWSLauncher extends ComponentDefinition {
 
     private Logger LOG = LoggerFactory.getLogger(DYWSLauncher.class);
+    private String logPrefix = "";
     //******************************CONNECTIONS*********************************
     //DO NOT CONNECT TO
     //internal
     private Positive<StatusPort> otherStatusPort = requires(StatusPort.class);
-    private Positive<AddressUpdatePort> addressUpdatePort = requires(AddressUpdatePort.class);
     //********************************CONFIG************************************
     private SystemKCWrapper systemConfig;
-    //******************************AUX STATE***********************************
-    private KAddress selfAdr;
+    //******************************AUX_STATE***********************************
+    private NatAwareAddress selfAdr;
+    private byte[] schemaId = null;
     //********************************CLEANUP***********************************
     private Component timerComp;
     private Component netMngrComp;
-    private Component caracalClientComp;
-    private Component heartbeatComp;
-    private Component overlayMngrComp;
+    private Component ccMngrComp;
+    private Component oMngrComp;
     private Component sweepHostComp;
     private Component sweepSyncComp;
     private Component vodHostComp;
@@ -106,9 +105,6 @@ public class DYWSLauncher extends ComponentDefinition {
 
     private SettableFuture<GVoDSyncI> gvodSyncIFuture;
     private SweepSyncI sweepSyncI;
-
-    private byte[] vodSchemaId = null;
-    private boolean ccReady = false;
     //**************************************************************************
 
     public DYWSLauncher() {
@@ -119,26 +115,12 @@ public class DYWSLauncher extends ComponentDefinition {
 
         systemConfig = new SystemKCWrapper(config());
 
-        phase1();
-
         subscribe(handleStart, control);
-        subscribe(handleAddressUpdate, addressUpdatePort);
+        subscribe(handleNetReady, otherStatusPort);
+        subscribe(handleCCReady, otherStatusPort);
+        subscribe(handleCaracalDisconnect, otherStatusPort);
     }
-
-    Handler handleStart = new Handler<Start>() {
-        @Override
-        public void handle(Start event) {
-            LOG.info("starting: solvingIp");
-        }
-    };
-
-    @Override
-    public Fault.ResolveAction handleFault(Fault fault) {
-        LOG.error("exception:{} shutting down", fault.getCause());
-        System.exit(1);
-        return Fault.ResolveAction.RESOLVED;
-    }
-
+    
     private void registerSerializers() {
         MessageRegistrator.register();
         int currentId = 128;
@@ -161,59 +143,51 @@ public class DYWSLauncher extends ComponentDefinition {
         VodCoreAggregation.registerPorts();
     }
 
-    private void phase1() {
-        //timer
-        timerComp = create(JavaTimer.class, Init.NONE);
-        //network mngr
-        NetworkMngrComp.ExtPort netMngrExtPorts = new NetworkMngrComp.ExtPort(timerComp.getPositive(Timer.class));
-        netMngrComp = create(NetworkMngrComp.class, new NetworkMngrComp.Init(netMngrExtPorts));
-        //mini-hack - get rid of this, make dbMngr ask for the self through ports
-        connect(netMngrComp.getPositive(AddressUpdatePort.class), addressUpdatePort.getPair(), Channel.TWO_WAY);
-    }
-
-    private Handler handleAddressUpdate = new Handler<AddressUpdate.Indication>() {
+    Handler handleStart = new Handler<Start>() {
         @Override
-        public void handle(AddressUpdate.Indication update) {
-            LOG.info("update address");
-            if (selfAdr == null) {
-                selfAdr = update.localAddress;
-                //phase2
-                connectCaracalClient();
-                connectHeartbeat();
-                subscribe(handleCaracalDisconnect, otherStatusPort);
-                subscribe(handleCaracalReady, otherStatusPort);
-                subscribe(handleHeartbeatReady, otherStatusPort);
+        public void handle(Start event) {
+            LOG.info("starting: solvingIp");
 
-                trigger(Start.event, caracalClientComp.control());
-                trigger(Start.event, heartbeatComp.control());
-            }
+            timerComp = create(JavaTimer.class, Init.NONE);
+            setNetMngr();
+            trigger(Start.event, timerComp.control());
+            trigger(Start.event, netMngrComp.control());
         }
     };
 
-    private void connectCaracalClient() {
-        caracalClientComp = create(CCBootstrapComp.class, new CCBootstrapComp.CCBootstrapInit(selfAdr));
-        connect(caracalClientComp.getNegative(Timer.class), timerComp.getPositive(Timer.class), Channel.TWO_WAY);
-        connect(caracalClientComp.getNegative(Network.class), netMngrComp.getPositive(Network.class), Channel.TWO_WAY);
-        connect(caracalClientComp.getPositive(StatusPort.class), otherStatusPort.getPair(), Channel.TWO_WAY);
+    private void setNetMngr() {
+        LOG.info("{}setting up network mngr", logPrefix);
+        NetworkMngrComp.ExtPort netExtPorts = new NetworkMngrComp.ExtPort(timerComp.getPositive(Timer.class));
+        netMngrComp = create(NetworkMngrComp.class, new NetworkMngrComp.Init(netExtPorts));
+        connect(netMngrComp.getPositive(StatusPort.class), otherStatusPort.getPair(), Channel.TWO_WAY);
     }
 
-    private void connectHeartbeat() {
-        heartbeatComp = create(CCHeartbeatComp.class, new CCHeartbeatComp.CCHeartbeatInit(selfAdr));
-        connect(heartbeatComp.getNegative(Timer.class), timerComp.getPositive(Timer.class), Channel.TWO_WAY);
-        connect(heartbeatComp.getNegative(CCOperationPort.class), caracalClientComp.getPositive(CCOperationPort.class), Channel.TWO_WAY);
-        connect(heartbeatComp.getNegative(StatusPort.class), caracalClientComp.getPositive(StatusPort.class), Channel.TWO_WAY);
-        connect(heartbeatComp.getPositive(StatusPort.class), otherStatusPort.getPair(), Channel.TWO_WAY);
-    }
-
-    ClassMatchedHandler handleCaracalReady
-            = new ClassMatchedHandler<CCBootstrapReady, Status.Internal<CCBootstrapReady>>() {
-
+    ClassMatchedHandler handleNetReady
+            = new ClassMatchedHandler<NetMngrReady, Status.Internal<NetMngrReady>>() {
                 @Override
-                public void handle(CCBootstrapReady content, Status.Internal<CCBootstrapReady> container) {
+                public void handle(NetMngrReady content, Status.Internal<NetMngrReady> container) {
+                    LOG.info("{}network mngr ready", logPrefix);
+                    selfAdr = content.systemAdr;
+                    setCCMngr();
+                    trigger(Start.event, ccMngrComp.control());
+                }
+            };
 
-                    LOG.info("starting: received schemas");
-                    vodSchemaId = content.caracalSchemaData.getId("gvod.metadata");
-                    if (vodSchemaId == null) {
+    private void setCCMngr() {
+        LOG.info("{}setting up caracal client", logPrefix);
+        CCMngrComp.ExtPort ccMngrExtPorts = new CCMngrComp.ExtPort(timerComp.getPositive(Timer.class),
+                netMngrComp.getPositive(Network.class));
+        ccMngrComp = create(CCMngrComp.class, new CCMngrComp.Init(selfAdr, ccMngrExtPorts));
+        connect(ccMngrComp.getPositive(StatusPort.class), otherStatusPort.getPair(), Channel.TWO_WAY);
+    }
+
+    ClassMatchedHandler handleCCReady
+            = new ClassMatchedHandler<CCMngrStatus.Ready, Status.Internal<CCMngrStatus.Ready>>() {
+                @Override
+                public void handle(CCMngrStatus.Ready content, Status.Internal<CCMngrStatus.Ready> container) {
+                    LOG.info("{}caracal client ready", logPrefix);
+                    schemaId = content.schemas.getId("gvod.metadata");
+                    if (schemaId == null) {
                         LOG.error("exception:vod schema undefined shutting down");
                         System.exit(1);
                     }
@@ -222,13 +196,19 @@ public class DYWSLauncher extends ComponentDefinition {
                         dyWS.setIsServerDown(false);
                     }
 
-                    if (!ccReady) {
-                        ccReady = true;
-                    } else {
-                        if (overlayMngrComp == null) {
-                            phase3();
-                        }
-                    }
+                    setOMngr();
+                    setSweep();
+                    setSweepSync();
+                    setVoDHost();
+                    startWebservice();
+                    LOG.info("overlay owners:\n{}", OverlayIdRegistry.print());
+
+                    trigger(Start.event, oMngrComp.control());
+                    trigger(Start.event, oMngrComp.control());
+                    trigger(Start.event, vodHostComp.control());
+                    trigger(Start.event, sweepHostComp.control());
+                    trigger(Start.event, sweepSyncComp.control());
+                    
                 }
             };
 
@@ -236,10 +216,10 @@ public class DYWSLauncher extends ComponentDefinition {
      * Caracal client gets disconnected.
      */
     ClassMatchedHandler handleCaracalDisconnect
-            = new ClassMatchedHandler<CCBootstrapDisconnected, Status.Internal<CCBootstrapDisconnected>>() {
+            = new ClassMatchedHandler<CCMngrStatus.Disconnected, Status.Internal<CCMngrStatus.Disconnected>>() {
 
                 @Override
-                public void handle(CCBootstrapDisconnected content, Status.Internal<CCBootstrapDisconnected> container) {
+                public void handle(CCMngrStatus.Disconnected content, Status.Internal<CCMngrStatus.Disconnected> container) {
 
                     LOG.debug("Caracal client disconnected, need to initiate counter measures.");
 
@@ -250,63 +230,34 @@ public class DYWSLauncher extends ComponentDefinition {
                 }
             };
 
-    private Handler handleHeartbeatReady = new Handler<Status.Internal<CCHeartbeatReady>>() {
-        @Override
-        public void handle(Status.Internal<CCHeartbeatReady> e) {
-            LOG.info("starting: system");
-            if (!ccReady) {
-                ccReady = true;
-            } else {
-                if (overlayMngrComp == null) {
-                    phase3();
-                }
-            }
-        }
-    };
-
-    private void phase3() {
-        connectOverlayMngr();
-        connectSweep();
-        connectSweepSync();
-        connectVoDHost();
-        startWebservice();
-        LOG.info("overlay owners:\n{}", OverlayIdRegistry.print());
-
-        trigger(Start.event, overlayMngrComp.control());
-        trigger(Start.event, vodHostComp.control());
-        trigger(Start.event, sweepHostComp.control());
-        trigger(Start.event, sweepSyncComp.control());
+    private void setOMngr() {
+        LOG.info("{}setting up overlay mngr", logPrefix);
+        OverlayMngrComp.ExtPort oMngrExtPorts = new OverlayMngrComp.ExtPort(timerComp.getPositive(Timer.class),
+                netMngrComp.getPositive(Network.class), ccMngrComp.getPositive(CCHeartbeatPort.class));
+        oMngrComp = create(OverlayMngrComp.class, new OverlayMngrComp.Init(selfAdr, oMngrExtPorts));
     }
-
-    private void connectOverlayMngr() {
-        OverlayMngrComp.ExtPort omngrExtPorts = new OverlayMngrComp.ExtPort(timerComp.getPositive(Timer.class),
-                netMngrComp.getPositive(Network.class), netMngrComp.getPositive(AddressUpdatePort.class),
-                heartbeatComp.getPositive(CCHeartbeatPort.class));
-        overlayMngrComp = create(OverlayMngrComp.class, new OverlayMngrComp.Init(omngrExtPorts));
-    }
-
-    private void connectVoDHost() {
+    
+    private void setVoDHost() {
         HostManagerComp.ExtPort vodHostExtPorts = new HostManagerComp.ExtPort(timerComp.getPositive(Timer.class),
-                netMngrComp.getPositive(Network.class), netMngrComp.getPositive(AddressUpdatePort.class),
-                caracalClientComp.getPositive(CCOperationPort.class),
-                overlayMngrComp.getPositive(OverlayMngrPort.class), overlayMngrComp.getPositive(CroupierPort.class),
-                overlayMngrComp.getNegative(OverlayViewUpdatePort.class));
-        vodHostComp = create(HostManagerComp.class, new HostManagerComp.HostManagerInit(vodHostExtPorts,
-                new HostManagerKCWrapper(config()), gvodSyncIFuture, vodSchemaId));
+                netMngrComp.getPositive(Network.class), ccMngrComp.getPositive(CCOperationPort.class),
+                oMngrComp.getPositive(OverlayMngrPort.class), oMngrComp.getPositive(CroupierPort.class),
+                oMngrComp.getNegative(OverlayViewUpdatePort.class));
+        vodHostComp = create(HostManagerComp.class, new HostManagerComp.HostManagerInit(selfAdr, vodHostExtPorts,
+                new HostManagerKCWrapper(config()), gvodSyncIFuture, schemaId));
 
     }
 
-    private void connectSweep() {
+    private void setSweep() {
         SearchPeerComp.ExtPort extPort = new SearchPeerComp.ExtPort(timerComp.getPositive(Timer.class),
-                netMngrComp.getPositive(Network.class), netMngrComp.getPositive(AddressUpdatePort.class),
-                overlayMngrComp.getPositive(CroupierPort.class), overlayMngrComp.getPositive(GradientPort.class),
-                overlayMngrComp.getNegative(OverlayViewUpdatePort.class));
+                netMngrComp.getPositive(Network.class),
+                oMngrComp.getPositive(CroupierPort.class), oMngrComp.getPositive(GradientPort.class),
+                oMngrComp.getNegative(OverlayViewUpdatePort.class));
         sweepHostComp = create(SearchPeerComp.class, new SearchPeerComp.Init(selfAdr, extPort,
                 GradientConfiguration.build(), SearchConfiguration.build()));
-        connect(sweepHostComp.getNegative(OverlayMngrPort.class), overlayMngrComp.getPositive(OverlayMngrPort.class), Channel.TWO_WAY);
+        connect(sweepHostComp.getNegative(OverlayMngrPort.class), oMngrComp.getPositive(OverlayMngrPort.class), Channel.TWO_WAY);
     }
 
-    private void connectSweepSync() {
+    private void setSweepSync() {
         sweepSyncComp = create(SweepSyncComponent.class, Init.NONE);
         sweepSyncI = (SweepSyncI) sweepSyncComp.getComponent();
         connect(sweepSyncComp.getNegative(UiPort.class), sweepHostComp.getPositive(UiPort.class), Channel.TWO_WAY);
@@ -328,6 +279,13 @@ public class DYWSLauncher extends ComponentDefinition {
             LOG.error("webservice error");
             throw new RuntimeException(ex);
         }
+    }
+
+    @Override
+    public Fault.ResolveAction handleFault(Fault fault) {
+        LOG.error("exception:{} shutting down", fault.getCause());
+        System.exit(1);
+        return Fault.ResolveAction.RESOLVED;
     }
 
     public static void main(String[] args) throws IOException {
